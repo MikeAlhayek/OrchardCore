@@ -33,13 +33,18 @@ The theme should be available in the `Active themes` admin page, and can be set 
 
 ## How to enable Razor templates in my theme?
 
-The themes we have in source code uses only `Liquid` files so their .csproj only reference : 
+The themes we have in source code uses only `Liquid` files so their `.csproj` only reference : 
 
 `<Project Sdk="Microsoft.NET.Sdk">`
 
-If you want to use Razor templates in your theme you simply need to change this .csproj first line for :
+If you want to use Razor templates in your theme you simply need to change this `.csproj` first line for :
 
 `<Project Sdk="Microsoft.NET.Sdk.Razor">`
 
-
-
+!!! note
+    If you recive `The namespace 'Razor' already contains a definition for 'Template'`, add the following code to the `.csproj`
+    ```
+      <PropertyGroup>
+        <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+      </PropertyGroup>
+    ```
