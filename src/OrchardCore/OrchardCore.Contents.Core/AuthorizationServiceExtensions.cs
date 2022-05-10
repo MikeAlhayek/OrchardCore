@@ -35,6 +35,27 @@ namespace Microsoft.AspNetCore.Authorization
             return await service.AuthorizeAsync(user, permission);
         }
 
+        /// <summary>
+        /// Evaluate if we have a specific owner variation permission to the given content type
+        /// </summary>
+        public static async Task<bool> AuthorizeContentTypeDefinitionAsync(this IAuthorizationService service, ClaimsPrincipal user, Permission requiredPermission, ContentTypeDefinition contentTypeDefinition, IContentManager contentManager)
+        {
+            var permission = GetOwnerVariation(requiredPermission);
+            var contentTypePermission = ContentTypePermissionsHelper.ConvertToDynamicPermission(permission);
+
+            var dynamicPermission = ContentTypePermissionsHelper.CreateDynamicPermission(contentTypePermission, contentTypeDefinition);
+
+            var contentItem = await contentManager.NewAsync(contentTypeDefinition.Name);
+            contentItem.Owner = user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (await service.AuthorizeAsync(user, dynamicPermission, contentItem))
+            {
+                return true;
+            }
+
+            return await service.AuthorizeAsync(user, permission);
+        }
+
         private static Permission GetOwnerVariation(Permission permission)
         {
             if (permission.Name == CommonPermissions.PublishContent.Name)
