@@ -58,14 +58,14 @@ Orchard Core CMS supports all major site building strategies:
 
 ## Status
 
-The latest released version of Orchard Core is `1.4.0`.
-The release notes can be found on <https://github.com/OrchardCMS/OrchardCore/releases/tag/v1.4.0>
+The latest released version of Orchard Core is `1.0.0`.
+The release notes can be found on <https://github.com/OrchardCMS/OrchardCore/releases/tag/1.0.0>
 
 Here is a more detailed [roadmap](https://github.com/OrchardCMS/OrchardCore/wiki/Roadmap).
 
 ## Getting Started
 
-- Clone the repository using the command `git clone https://github.com/OrchardCMS/OrchardCore.git` and checkout the `main` branch for the latest release, or the `dev` branch for the cutting-edge version.
+- Clone the repository using the command `git clone https://github.com/OrchardCMS/OrchardCore.git` and checkout the `master` branch for the latest release, or the `dev` branch for the cutting-edge version.
 
 - Watch the ASP.NET Community Standup video where Orchard Core was demonstrated: <https://www.youtube.com/watch?v=HeDjv3blBjQ&t=2246s&list=PL1rZQsJPBU2StolNg0aqvQswETPcYnNKL&index=24>
 
@@ -86,7 +86,7 @@ You can also read the [Code Generation Templates documentation](docs/getting-sta
 
 For more details on the various development tools we recommend for using with Orchard Core check out [the Development Tools documentation page](docs/resources/development-tools/README.md).
 
-- Download Visual Studio 2022 (any edition) from <https://www.visualstudio.com/downloads/>.
+- Download Visual Studio 2019 (any edition) from <https://www.visualstudio.com/downloads/>.
 - Open `OrchardCore.sln` and wait for Visual Studio to restore all Nuget packages.
 - Ensure `OrchardCore.Cms.Web` is the startup project and run it.
 - Optionally install the [Lombiq Orchard Visual Studio Extension](https://marketplace.visualstudio.com/items?itemName=LombiqVisualStudioExtension.LombiqOrchardVisualStudioExtension) to add some useful utilities to your Visual Studio such as an error log watcher or a dependency injector.
@@ -97,7 +97,3 @@ For more details on the various development tools we recommend for using with Or
 - Run `docker run --name orchardcms orchardproject/orchardcore-cms-linux:latest`
 
 Docker images and parameters can be found at <https://hub.docker.com/u/orchardproject/>
-
-## Showcasing Orchard Core CMS
-
-<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/Gfy5SCACyL8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>

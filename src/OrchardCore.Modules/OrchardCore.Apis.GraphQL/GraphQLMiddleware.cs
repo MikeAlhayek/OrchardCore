@@ -83,12 +83,6 @@ namespace OrchardCore.Apis.GraphQL
 
             if (HttpMethods.IsPost(context.Request.Method))
             {
-                if (string.IsNullOrEmpty(context.Request.ContentType))
-                {
-                    await WriteErrorAsync(context, "Missing content-type");
-                    return;
-                }
-
                 var mediaType = new MediaType(context.Request.ContentType);
 
                 try
@@ -127,11 +121,6 @@ namespace OrchardCore.Apis.GraphQL
                         {
                             request.OperationName = context.Request.Query["operationName"];
                         }
-                    }
-                    else
-                    {
-                        await WriteErrorAsync(context, "The request needs a valid content-type or a query argument");
-                        return;
                     }
                 }
                 catch (Exception e)

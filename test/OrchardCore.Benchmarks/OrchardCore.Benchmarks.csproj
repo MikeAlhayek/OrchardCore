@@ -3,7 +3,7 @@
   <Import Project="..\..\src\OrchardCore.Build\Dependencies.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>$(CommonTargetFrameworks)</TargetFrameworks>
+    <TargetFrameworks>$(AspNetCoreTargetFrameworks)</TargetFrameworks>
     <RootNamespace>OrchardCore.Benchmark</RootNamespace>
     <IsPackable>false</IsPackable>
     <OutputType>Exe</OutputType>

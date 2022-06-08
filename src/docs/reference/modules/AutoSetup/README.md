@@ -8,36 +8,35 @@ Auto-Setup parameters are defined in appsettings.json. Example excerpt:
 ```json
 "OrchardCore": {
     "OrchardCore_AutoSetup": {
-        "AutoSetupPath": "",
-        "Tenants": [
-            {
-                "ShellName": "Default",
-                "SiteName": "AutoSetup Example",
-                "SiteTimeZone": "Europe/Amsterdam",
-                "AdminUsername": "admin",
-                "AdminEmail": "info@orchardproject.net",
-                "AdminPassword": "OrchardCoreRules1!",
-                "DatabaseProvider": "Sqlite",
-                "DatabaseConnectionString": "",
-                "DatabaseTablePrefix": "",
-                "RecipeName": "SaaS"
-            },
-            {
-                "ShellName": "AutoSetupTenant",
-                "SiteName": "AutoSetup Tenant",
-                "SiteTimeZone": "Europe/Amsterdam",
-                "AdminUsername": "tenantadmin",
-                "AdminEmail": "tenant@orchardproject.net",
-                "AdminPassword": "OrchardCoreRules1!",
-                "DatabaseProvider": "Sqlite",
-                "DatabaseConnectionString": "",
-                "DatabaseTablePrefix": "tenant",
-                "RecipeName": "Agency",
-                "RequestUrlHost": "",
-                "RequestUrlPrefix": "tenant"
-            }
-        ]
-    }
+    "AutoSetupPath": "",
+    "Tenants": [
+        {
+            "ShellName": "Default",
+            "SiteName": "AutoSetup Example",
+            "SiteTimeZone": "Europe/Amsterdam",
+            "AdminUsername": "admin",
+            "AdminEmail": "info@orchardproject.net",
+            "AdminPassword": "OrchardCoreRules1!",
+            "DatabaseProvider": "Sqlite",
+            "DatabaseConnectionString": "",
+            "DatabaseTablePrefix": "",
+            "RecipeName": "SaaS"
+        },
+        {
+            "ShellName": "AutoSetupTenant",
+            "SiteName": "AutoSetup Tenant",
+            "SiteTimeZone": "Europe/Amsterdam",
+            "AdminUsername": "tenantadmin",
+            "AdminEmail": "tenant@orchardproject.net",
+            "AdminPassword": "OrchardCoreRules1!",
+            "DatabaseProvider": "Sqlite",
+            "DatabaseConnectionString": "",
+            "DatabaseTablePrefix": "tenant",
+            "RecipeName": "Agency",
+            "RequestUrlHost": "",
+            "RequestUrlPrefix": "tenant"
+        }
+    ]
 }
 ```
 
@@ -103,7 +102,13 @@ For testing purposes, you may add the above environment variables into a "web" p
 Then, start the web app project with the following command:
 
 ```
-dotnet run --launch-profile web
+dotnet run -f net5.0 --launch-profile web
+```
+
+or 
+
+```
+dotnet run -f netcoreapp3.1 --launch-profile web
 ```
 
 ## Enabling Auto Setup Feature

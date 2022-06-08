@@ -3,9 +3,6 @@ using System.Threading.Tasks;
 
 namespace OrchardCore.Queries
 {
-    /// <summary>
-    /// Contract for managing the query.
-    /// </summary>
     public interface IQueryManager
     {
         /// <summary>

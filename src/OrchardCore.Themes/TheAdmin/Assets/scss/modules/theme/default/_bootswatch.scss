@@ -3,7 +3,6 @@
 
 // Variables ===================================================================
 @import "_admin-variables.scss";
-@import "../../admin/_root.scss";
 // Navbar ======================================================================
 @import "../../admin/_navbar.scss";
 
@@ -13,15 +12,14 @@
 
     a {
         color: $gray-700;
-        text-decoration: none !important;
+        text-decoration: none;
     }
 }
 
 .ta-badge {
-    @extend .bg-light;
+    @extend .badge-light;
 
-    background-color: darken(#f8f9fa, 5%) !important;
-    color: $gray-700;
+    background-color: darken(#f8f9fa, 5%)
 }
 
 .ta-navbar-brand {
@@ -40,14 +38,6 @@
     background-color: #f8f9fa !important;
 }
 // Buttons =====================================================================
-
-.bootstrap-select {
-    .popover-header {
-        .close {
-            color: black;
-        }
-    }
-}
 
 // Typography ==================================================================
 

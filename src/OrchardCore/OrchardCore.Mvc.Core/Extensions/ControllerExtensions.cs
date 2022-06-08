@@ -35,12 +35,7 @@ namespace Microsoft.AspNetCore.Mvc
         /// <param name="escapeUrl">Whether to escape the url.</param>
         public static ActionResult LocalRedirect(this Controller controller, string localUrl, bool escapeUrl)
         {
-            if (!escapeUrl)
-            {
-                return controller.LocalRedirect(localUrl);
-            }
-
-            return controller.LocalRedirect(localUrl.ToUriComponents());
+            return controller.LocalRedirect(EscapeLocationHeader(localUrl));
         }
 
 
@@ -48,16 +43,22 @@ namespace Microsoft.AspNetCore.Mvc
         /// Creates a <see cref="RedirectResult"/> object that redirects to the specified url
         /// </summary>
         /// <param name="controller"></param>
-        /// <param name="url">The URL to redirect to.</param>
+        /// <param name="url">The local URL to redirect to.</param>
         /// <param name="escapeUrl">Whether to escape the url.</param>
         public static ActionResult Redirect(this Controller controller, string url, bool escapeUrl)
         {
-            if (!escapeUrl)
+            return controller.Redirect(EscapeLocationHeader(url));
+        }
+
+        public static string EscapeLocationHeader(string stringToEscape)
+        {
+            if (String.IsNullOrEmpty(stringToEscape))
             {
-                return controller.Redirect(url);
+                return stringToEscape;
             }
 
-            return controller.Redirect(url.ToUriComponents());
+            var uri = new Uri(stringToEscape, UriKind.RelativeOrAbsolute);
+            return uri.GetComponents(UriComponents.SerializationInfoString, UriFormat.UriEscaped);
         }
     }
 }

@@ -98,7 +98,7 @@ namespace OrchardCore.Users.Controllers
                         return RedirectToAction("RegistrationPending", new { ReturnUrl = returnUrl });
                     }
 
-                    return RedirectToLocal(returnUrl.ToUriComponents());
+                    return RedirectToLocal(Microsoft.AspNetCore.Mvc.ControllerExtensions.EscapeLocationHeader(returnUrl));
                 }
             }
 

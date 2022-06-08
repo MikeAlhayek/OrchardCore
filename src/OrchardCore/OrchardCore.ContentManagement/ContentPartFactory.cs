@@ -10,13 +10,25 @@ namespace OrchardCore.ContentManagement
     /// </summary>
     public class ContentPartFactory : ITypeActivatorFactory<ContentPart>
     {
-        private readonly ITypeActivator<ContentPart> ContentPartActivator = new GenericTypeActivator<ContentPart, ContentPart>();
+        private ITypeActivator<ContentPart> ContentPartActivator = new GenericTypeActivator<ContentPart, ContentPart>();
 
         private readonly Dictionary<string, ITypeActivator<ContentPart>> _contentPartActivators;
 
-        public ContentPartFactory(IOptions<ContentOptions> contentOptions)
+        public ContentPartFactory(
+            IEnumerable<ContentPart> contentParts,
+            IOptions<ContentOptions> contentOptions
+            )
         {
             _contentPartActivators = new Dictionary<string, ITypeActivator<ContentPart>>();
+
+            // Check DI container for registered parts.
+            // TODO: This code can be removed in a future release as the recommended way is to use ContentOptions.
+            foreach (var contentPart in contentParts)
+            {
+                var activatorType = typeof(GenericTypeActivator<,>).MakeGenericType(contentPart.GetType(), typeof(ContentPart));
+                var activator = (ITypeActivator<ContentPart>)Activator.CreateInstance(activatorType);
+                _contentPartActivators.Add(contentPart.GetType().Name, activator);
+            }
 
             // Check content options for configured parts.
             foreach (var partOption in contentOptions.Value.ContentPartOptions)
