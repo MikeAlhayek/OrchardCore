@@ -90,6 +90,7 @@ namespace OrchardCore.Contents.Drivers
                 );
             }
 
+            results.Add(Shape("ContentsTitle_SummaryAdmin", new ContentItemViewModel(contentItem)).Location("SummaryAdmin", "Title:10"));
             results.Add(Shape("ContentsTags_SummaryAdmin", new ContentItemViewModel(contentItem)).Location("SummaryAdmin", "Tags:10"));
             results.Add(Shape("ContentsMeta_SummaryAdmin", new ContentItemViewModel(contentItem)).Location("SummaryAdmin", "Meta:20"));
 

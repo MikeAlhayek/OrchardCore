@@ -35,7 +35,6 @@ using OrchardCore.Contents.ViewModels;
 using OrchardCore.ContentTypes.Editors;
 using OrchardCore.Data.Migration;
 using OrchardCore.Deployment;
-using OrchardCore.DisplayManagement;
 using OrchardCore.DisplayManagement.Descriptors;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.DisplayManagement.Liquid;
@@ -56,6 +55,7 @@ using OrchardCore.Sitemaps.Handlers;
 using OrchardCore.Sitemaps.Models;
 using OrchardCore.Sitemaps.Services;
 using YesSql.Filters.Query;
+using YesSql.Indexes;
 
 namespace OrchardCore.Contents
 {
@@ -309,6 +309,57 @@ namespace OrchardCore.Contents
                 areaName: "OrchardCore.Contents",
                 pattern: _adminOptions.AdminUrlPrefix + "/Contents/ContentItems/{contentItemId}/Unpublish",
                 defaults: new { controller = adminControllerName, action = nameof(AdminController.Unpublish) }
+            );
+        }
+    }
+
+    [Feature("OrchardCore.Contents.Profile")]
+    public class ContentProfileStartup : StartupBase
+    {
+        private readonly AdminOptions _adminOptions;
+
+        public ContentProfileStartup(IOptions<AdminOptions> adminOptions)
+        {
+            _adminOptions = adminOptions.Value;
+        }
+
+        public override void ConfigureServices(IServiceCollection services)
+        {
+            services.AddScoped<IShapeTableProvider, ProfileShapes>();
+            services.AddScoped<IIndexProvider, ContainedProfilePartIndexProvider>();
+            services.AddScoped<IDataMigration, ProfileMigrations>();
+        }
+
+        public override void Configure(IApplicationBuilder builder, IEndpointRouteBuilder routes, IServiceProvider serviceProvider)
+        {
+            var profileControllerName = typeof(ProfileController).ControllerName();
+
+            routes.MapAreaControllerRoute(
+                name: "EditContentItemInProfile",
+                areaName: "OrchardCore.Contents",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profiles/{profileId}/ContentItems/{contentItemId}/Edit",
+                defaults: new { controller = profileControllerName, action = nameof(ProfileController.Edit) }
+            );
+
+            routes.MapAreaControllerRoute(
+                name: "CreateContentItemInProfile",
+                areaName: "OrchardCore.Contents",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profiles/{profileId}/ContentTypes/{id}/Create",
+                defaults: new { controller = profileControllerName, action = nameof(ProfileController.Create) }
+            );
+
+            routes.MapAreaControllerRoute(
+                name: "AdminContentItemInProfile",
+                areaName: "OrchardCore.Contents",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profiles/{profileId}/ContentItems/{contentItemId}/Display",
+                defaults: new { controller = profileControllerName, action = nameof(ProfileController.Display) }
+            );
+
+            routes.MapAreaControllerRoute(
+                name: "ListContentItemsInProfile",
+                areaName: "OrchardCore.Contents",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profiles/{profileId}/ContentItems/{contentTypeId}",
+                defaults: new { controller = profileControllerName, action = nameof(ProfileController.List) }
             );
         }
     }
