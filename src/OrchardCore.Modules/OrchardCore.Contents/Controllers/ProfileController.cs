@@ -111,11 +111,16 @@ public class ProfileController : Controller, IUpdateModel
             return Forbid();
         }
 
-        var profileContentItem = await _session.Query<ContentItem, ContentItemIndex>(x => x.ContentItemId == profileId && x.Published).FirstOrDefaultAsync();
+        var profileContentItem = await _contentManager.GetAsync(profileId);
 
         if (profileContentItem == null)
         {
             return NotFound();
+        }
+
+        if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+        {
+            return Forbid();
         }
 
         options.SelectedContentType = contentTypeId;
@@ -236,7 +241,15 @@ public class ProfileController : Controller, IUpdateModel
             }))
         };
 
-        return View(profileViewModel);
+        var model = await GetProfileShapeAync(profileContentItem, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", viewModel =>
+        {
+            viewModel.ContentItems = contentItemSummaries;
+            viewModel.Pager = pagerShape;
+            viewModel.Options = options;
+            viewModel.Header = header;
+        }));
+
+        return View(model);
     }
 
     [HttpPost, ActionName("List")]
@@ -327,6 +340,18 @@ public class ProfileController : Controller, IUpdateModel
             return NotFound();
         }
 
+        var profileContentItem = await _contentManager.GetAsync(profileId);
+
+        if (profileContentItem == null)
+        {
+            return NotFound();
+        }
+
+        if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+        {
+            return Forbid();
+        }
+
         var contentItem = await CreateContentItemForOwnedByCurrentAsync(profileId, id);
 
         if (!await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
@@ -390,12 +415,26 @@ public class ProfileController : Controller, IUpdateModel
             return NotFound();
         }
 
+        var profilePart = contentItem.As<ContainedProfilePart>();
+
+        if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
+        {
+            return NotFound();
+        }
+
+        var profileContentItem = await _contentManager.GetAsync(profilePart.ProfileContentItemId);
+
+        if (profileContentItem == null)
+        {
+            return NotFound();
+        }
+
         if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, contentItem))
         {
             return Forbid();
         }
 
-        var model = await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin");
+        var model = await GetProfileShapeAync(profileContentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
 
         return View(model);
     }
@@ -409,12 +448,31 @@ public class ProfileController : Controller, IUpdateModel
             return NotFound();
         }
 
+        var profilePart = contentItem.As<ContainedProfilePart>();
+
+        if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
+        {
+            return NotFound();
+        }
+
+        var profileContentItem = await _contentManager.GetAsync(profilePart.ProfileContentItemId);
+
+        if (profileContentItem == null)
+        {
+            return NotFound();
+        }
+
         if (!await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
         {
             return Forbid();
         }
 
-        var model = await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false);
+        if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+        {
+            return Forbid();
+        }
+
+        var model = await GetProfileShapeAync(profileContentItem, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false));
 
         return View(model);
     }
@@ -442,31 +500,54 @@ public class ProfileController : Controller, IUpdateModel
     {
         var stayOnSamePage = submitPublish == "submit.PublishAndContinue";
 
-        var content = await _contentManager.GetAsync(contentItemId, VersionOptions.Latest);
+        var contentItem = await _contentManager.GetAsync(contentItemId, VersionOptions.Latest);
 
-        if (content == null)
+        if (contentItem == null)
         {
             return NotFound();
         }
 
-        if (!await IsAuthorizedAsync(CommonPermissions.PublishContent, content))
-        {
-            return Forbid();
-        }
         return await EditPOST(contentItemId, returnUrl, stayOnSamePage, async contentItem =>
         {
             await _contentManager.PublishAsync(contentItem);
 
             var typeDefinition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-            await _notifier.SuccessAsync(string.IsNullOrWhiteSpace(typeDefinition.DisplayName)
+            await _notifier.SuccessAsync(String.IsNullOrWhiteSpace(typeDefinition.DisplayName)
                 ? H["Your content has been published."]
                 : H["Your {0} has been published.", typeDefinition.DisplayName]);
         });
     }
 
+    private async Task<IShape> GetProfileShapeAync(ContentItem profileContentItem, IShape body)
+    {
+        return await _shapeFactory.CreateAsync<ProfileViewModel>("ProfileViewModel", async viewModel =>
+        {
+            viewModel.Header = await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, this, "Profile");
+            viewModel.Body = body;
+            viewModel.Navigation = await _shapeFactory.CreateAsync("Navigation", Arguments.From(new
+            {
+                // this should be built dynamicly "List/Add" should be added based on the config of each 
+                MenuName = $"profile.{profileContentItem.ContentType.ToLowerInvariant()}",
+                RouteData = GetRouteData()
+            }));
+        });
+    }
+
     private async Task<IActionResult> CreatePOST(string profileId, string id, string returnUrl, bool stayOnSamePage, Func<ContentItem, Task> conditionallyPublish)
     {
+        var profileContentItem = await _contentManager.GetAsync(profileId);
+
+        if (profileContentItem == null)
+        {
+            return NotFound();
+        }
+
+        if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+        {
+            return Forbid();
+        }
+
         var contentItem = await CreateContentItemForOwnedByCurrentAsync(profileId, id);
 
         if (!await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
@@ -514,6 +595,30 @@ public class ProfileController : Controller, IUpdateModel
         }
 
         if (!await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
+        {
+            return Forbid();
+        }
+
+        var profilePart = contentItem.As<ContainedProfilePart>();
+
+        if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
+        {
+            return NotFound();
+        }
+
+        var profileContentItem = await _contentManager.GetAsync(profilePart.ProfileContentItemId);
+
+        if (profileContentItem == null)
+        {
+            return NotFound();
+        }
+
+        if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+        {
+            return Forbid();
+        }
+
+        if (!await IsAuthorizedAsync(CommonPermissions.PublishContent, contentItem))
         {
             return Forbid();
         }
