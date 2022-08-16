@@ -21,7 +21,6 @@ namespace OrchardCore.Navigation
             services.AddScoped<IShapeTableProvider, NavigationShapes>();
             services.AddScoped<IShapeTableProvider, PagerShapesTableProvider>();
             services.AddShapeAttributes<PagerShapes>();
-
             services.Configure<PagerOptions>(options => _configuration.GetSection("OrchardCore:OrchardCore_Pager").Bind(options));
         }
     }
