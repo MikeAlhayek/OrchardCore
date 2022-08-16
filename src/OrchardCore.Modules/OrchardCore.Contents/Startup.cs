@@ -337,28 +337,28 @@ namespace OrchardCore.Contents
             routes.MapAreaControllerRoute(
                 name: "EditContentItemInProfile",
                 areaName: "OrchardCore.Contents",
-                pattern: _adminOptions.AdminUrlPrefix + "/Profiles/{profileId}/ContentItems/{contentItemId}/Edit",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentItems/{contentItemId}/Edit",
                 defaults: new { controller = profileControllerName, action = nameof(ProfileController.Edit) }
             );
 
             routes.MapAreaControllerRoute(
                 name: "CreateContentItemInProfile",
                 areaName: "OrchardCore.Contents",
-                pattern: _adminOptions.AdminUrlPrefix + "/Profiles/{profileId}/ContentTypes/{id}/Create",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentTypes/{id}/Create",
                 defaults: new { controller = profileControllerName, action = nameof(ProfileController.Create) }
             );
 
             routes.MapAreaControllerRoute(
                 name: "AdminContentItemInProfile",
                 areaName: "OrchardCore.Contents",
-                pattern: _adminOptions.AdminUrlPrefix + "/Profiles/{profileId}/ContentItems/{contentItemId}/Display",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentItems/{contentItemId}/Display",
                 defaults: new { controller = profileControllerName, action = nameof(ProfileController.Display) }
             );
 
             routes.MapAreaControllerRoute(
                 name: "ListContentItemsInProfile",
                 areaName: "OrchardCore.Contents",
-                pattern: _adminOptions.AdminUrlPrefix + "/Profiles/{profileId}/ContentItems/{contentTypeId}",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentItems/{contentTypeId}",
                 defaults: new { controller = profileControllerName, action = nameof(ProfileController.List) }
             );
         }

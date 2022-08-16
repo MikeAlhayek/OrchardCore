@@ -7,6 +7,7 @@ using OrchardCore.ContentManagement.Display.ContentDisplay;
 using OrchardCore.ContentManagement.Display.ViewModels;
 using OrchardCore.ContentManagement.Metadata;
 using OrchardCore.ContentManagement.Metadata.Settings;
+using OrchardCore.Contents.Models;
 using OrchardCore.DisplayManagement.ModelBinding;
 using OrchardCore.DisplayManagement.Views;
 
@@ -68,6 +69,20 @@ namespace OrchardCore.Contents.Drivers
                         }
                     }
 
+                    var profileSettings = contentTypeDefinition.GetSettings<ContentProfileSettings>();
+
+                    if (contentItem.ContentType == "Client")
+                    {
+                        profileSettings = new ContentProfileSettings()
+                        {
+                            ContainedContentTypes = new[] { "ClientLocation" },
+                        };
+                    }
+
+                    if (profileSettings.ContainedContentTypes != null && profileSettings.ContainedContentTypes.Length > 0)
+                    {
+                        ctx.Shape.Metadata.Alternates.Add("Profile_ContentsTitle_SummaryAdmin");
+                    }
                 });
 
                 results.Add(contentsMetadataShape);
