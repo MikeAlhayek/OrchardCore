@@ -325,8 +325,8 @@ namespace OrchardCore.Contents
 
         public override void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IIndexProvider, ContainedProfilePartIndexProvider>();
             services.AddScoped<IShapeTableProvider, ProfileShapes>();
-            services.AddScoped<IIndexProvider, ContainedProfilePartIndexProvider>();
             services.AddScoped<IDataMigration, ProfileMigrations>();
         }
 
