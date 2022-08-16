@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OrchardCore.Admin;
 using OrchardCore.Deployment;
-using OrchardCore.DisplayManagement;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.Liquid;
 using OrchardCore.Modules;
@@ -93,6 +92,8 @@ namespace OrchardCore.Settings
             services.AddScoped<IDisplayDriver<DeploymentStep>, SiteSettingsDeploymentStepDriver>();
 
             services.AddScoped<IRecipeEnvironmentProvider, RecipeEnvironmentSiteNameProvider>();
+
+            services.AddTransient<IPostConfigureOptions<PagerOptions>, ConfigurePagerOptions>();
         }
 
         public override void Configure(IApplicationBuilder builder, IEndpointRouteBuilder routes, IServiceProvider serviceProvider)
