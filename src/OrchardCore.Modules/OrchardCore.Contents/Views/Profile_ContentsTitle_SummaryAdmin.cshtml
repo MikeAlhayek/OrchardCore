@@ -5,7 +5,7 @@
 
 @if (await AuthorizationService.AuthorizeAsync(User, CommonPermissions.EditContent, Model.ContentItem))
 {
-    <text>Show link to profile</text>
+    <a asp-controller="Profile" asp-action="Edit" asp-route-profileId="@Model.ContentItem.ContentItemId">@Model.ContentItem</a>
 }
 else
 {

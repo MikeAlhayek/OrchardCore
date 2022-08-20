@@ -328,6 +328,7 @@ namespace OrchardCore.Contents
             services.AddSingleton<IIndexProvider, ContainedProfilePartIndexProvider>();
             services.AddScoped<IShapeTableProvider, ProfileShapes>();
             services.AddScoped<IDataMigration, ProfileMigrations>();
+            services.AddScoped<INavigationProvider, ProfileMenu>();
         }
 
         public override void Configure(IApplicationBuilder builder, IEndpointRouteBuilder routes, IServiceProvider serviceProvider)
@@ -337,21 +338,21 @@ namespace OrchardCore.Contents
             routes.MapAreaControllerRoute(
                 name: "EditContentItemInProfile",
                 areaName: "OrchardCore.Contents",
-                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentItems/{contentItemId}/Edit",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentItems/Edit/{contentItemId?}",
                 defaults: new { controller = profileControllerName, action = nameof(ProfileController.Edit) }
             );
 
             routes.MapAreaControllerRoute(
                 name: "CreateContentItemInProfile",
                 areaName: "OrchardCore.Contents",
-                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentTypes/{id}/Create",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentTypes/{contentTypeId}/Create",
                 defaults: new { controller = profileControllerName, action = nameof(ProfileController.Create) }
             );
 
             routes.MapAreaControllerRoute(
                 name: "AdminContentItemInProfile",
                 areaName: "OrchardCore.Contents",
-                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentItems/{contentItemId}/Display",
+                pattern: _adminOptions.AdminUrlPrefix + "/Profile/{profileId}/ContentItems/Display/{contentItemId?}",
                 defaults: new { controller = profileControllerName, action = nameof(ProfileController.Display) }
             );
 

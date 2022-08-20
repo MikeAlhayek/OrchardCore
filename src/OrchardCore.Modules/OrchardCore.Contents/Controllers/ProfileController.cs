@@ -241,7 +241,7 @@ public class ProfileController : Controller, IUpdateModel
             }))
         };
 
-        var model = await GetProfileShapeAync(profileContentItem, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", viewModel =>
+        var model = await GetProfileShapeAync(profileContentItem, null, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", viewModel =>
         {
             viewModel.ContentItems = contentItemSummaries;
             viewModel.Pager = pagerShape;
@@ -333,9 +333,9 @@ public class ProfileController : Controller, IUpdateModel
         return RedirectToAction(nameof(List));
     }
 
-    public async Task<IActionResult> Create(string profileId, string id)
+    public async Task<IActionResult> Create(string profileId, string contentTypeId)
     {
-        if (String.IsNullOrWhiteSpace(profileId) || String.IsNullOrWhiteSpace(id))
+        if (String.IsNullOrWhiteSpace(profileId) || String.IsNullOrWhiteSpace(contentTypeId))
         {
             return NotFound();
         }
@@ -352,7 +352,7 @@ public class ProfileController : Controller, IUpdateModel
             return Forbid();
         }
 
-        var contentItem = await CreateContentItemForOwnedByCurrentAsync(profileId, id);
+        var contentItem = await CreateContentItemForOwnedByCurrentAsync(profileId, contentTypeId);
 
         if (!await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
         {
@@ -366,10 +366,10 @@ public class ProfileController : Controller, IUpdateModel
 
     [HttpPost, ActionName("Create")]
     [FormValueRequired("submit.Save")]
-    public Task<IActionResult> CreatePOST(string profileId, string id, [Bind(Prefix = "submit.Save")] string submitSave, string returnUrl)
+    public Task<IActionResult> CreatePOST(string profileId, string contentTypeId, [Bind(Prefix = "submit.Save")] string submitSave, string returnUrl)
     {
         var stayOnSamePage = submitSave == "submit.SaveAndContinue";
-        return CreatePOST(profileId, id, returnUrl, stayOnSamePage, async contentItem =>
+        return CreatePOST(profileId, contentTypeId, returnUrl, stayOnSamePage, async contentItem =>
         {
             await _contentManager.SaveDraftAsync(contentItem);
 
@@ -406,6 +406,7 @@ public class ProfileController : Controller, IUpdateModel
         });
     }
 
+
     public async Task<IActionResult> Display(string contentItemId)
     {
         var contentItem = await _contentManager.GetAsync(contentItemId, VersionOptions.Latest);
@@ -415,18 +416,40 @@ public class ProfileController : Controller, IUpdateModel
             return NotFound();
         }
 
-        var profilePart = contentItem.As<ContainedProfilePart>();
+        var definition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-        if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
+        var profileSettings = definition.GetSettings<ContentProfileSettings>();
+
+        if (contentItem.ContentType == "Client")
         {
-            return NotFound();
+            profileSettings = new ContentProfileSettings()
+            {
+                ContainedContentTypes = new[] { "ClientLocation" },
+            };
         }
 
-        var profileContentItem = await _contentManager.GetAsync(profilePart.ProfileContentItemId);
+        var profileContentItem = contentItem;
 
-        if (profileContentItem == null)
+        if (profileSettings == null)
         {
-            return NotFound();
+            var profilePart = contentItem.As<ContainedProfilePart>();
+
+            if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
+            {
+                return NotFound();
+            }
+
+            profileContentItem = await _contentManager.GetAsync(profilePart.ProfileContentItemId);
+
+            if (profileContentItem == null)
+            {
+                return NotFound();
+            }
+
+            if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+            {
+                return Forbid();
+            }
         }
 
         if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, contentItem))
@@ -434,52 +457,68 @@ public class ProfileController : Controller, IUpdateModel
             return Forbid();
         }
 
-        var model = await GetProfileShapeAync(profileContentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
+        var model = await GetProfileShapeAync(profileContentItem, contentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
 
         return View(model);
     }
 
-    public async Task<IActionResult> Edit(string contentItemId)
+    public async Task<IActionResult> Edit(string profileId, string contentItemId)
     {
-        var contentItem = await _contentManager.GetAsync(contentItemId, VersionOptions.Latest);
-
-        if (contentItem == null)
+        if (String.IsNullOrWhiteSpace(profileId))
         {
             return NotFound();
         }
 
-        var profilePart = contentItem.As<ContainedProfilePart>();
-
-        if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
-        {
-            return NotFound();
-        }
-
-        var profileContentItem = await _contentManager.GetAsync(profilePart.ProfileContentItemId);
+        var profileContentItem = await _contentManager.GetAsync(profileId, VersionOptions.Latest);
 
         if (profileContentItem == null)
         {
             return NotFound();
         }
 
-        if (!await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
+        ContentItem contentItem;
+        IShape shape;
+
+        if (!String.IsNullOrWhiteSpace(contentItemId))
         {
-            return Forbid();
+            if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+            {
+                return Forbid();
+            }
+
+            contentItem = await _contentManager.GetAsync(contentItemId, VersionOptions.Latest);
+
+            if (contentItem == null)
+            {
+                return NotFound();
+            }
+
+            var profilePart = contentItem.As<ContainedProfilePart>();
+
+            if (contentItemId != profilePart?.ProfileContentItemId)
+            {
+                return NotFound();
+            }
+
+            shape = await GetProfileShapeAync(profileContentItem, contentItem, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false));
+        }
+        else
+        {
+            // At this point we are we are editing the profile
+            if (!await IsAuthorizedAsync(CommonPermissions.EditContent, profileContentItem))
+            {
+                return Forbid();
+            }
+
+            shape = await GetProfileShapeAync(profileContentItem, null, await _contentItemDisplayManager.BuildEditorAsync(profileContentItem, _updateModelAccessor.ModelUpdater, false));
         }
 
-        if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
-        {
-            return Forbid();
-        }
-
-        var model = await GetProfileShapeAync(profileContentItem, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false));
-
-        return View(model);
+        return View(shape);
     }
 
     [HttpPost, ActionName("Edit")]
     [FormValueRequired("submit.Save")]
-    public Task<IActionResult> EditPOST(string contentItemId, [Bind(Prefix = "submit.Save")] string submitSave, string returnUrl)
+    public Task<IActionResult> EditPOST(string profileId, string contentItemId, [Bind(Prefix = "submit.Save")] string submitSave, string returnUrl)
     {
         var stayOnSamePage = submitSave == "submit.SaveAndContinue";
         return EditPOST(contentItemId, returnUrl, stayOnSamePage, async contentItem =>
@@ -519,19 +558,23 @@ public class ProfileController : Controller, IUpdateModel
         });
     }
 
-    private async Task<IShape> GetProfileShapeAync(ContentItem profileContentItem, IShape body)
+    private async Task<IShape> GetProfileShapeAync(ContentItem profileContentItem, ContentItem contentItem, IShape body)
     {
-        return await _shapeFactory.CreateAsync<ProfileViewModel>("ProfileViewModel", async viewModel =>
+        var shape = await _shapeFactory.CreateAsync<ProfileViewModel>("ProfileViewModel", async viewModel =>
         {
+            viewModel.ProfileContentItem = profileContentItem;
+            viewModel.ContentItem = contentItem;
             viewModel.Header = await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, this, "Profile");
             viewModel.Body = body;
             viewModel.Navigation = await _shapeFactory.CreateAsync("Navigation", Arguments.From(new
             {
                 // this should be built dynamicly "List/Add" should be added based on the config of each 
-                MenuName = $"profile.{profileContentItem.ContentType.ToLowerInvariant()}",
+                MenuName = $"Profile.{profileContentItem.ContentType}",
                 RouteData = GetRouteData()
             }));
         });
+
+        return shape;
     }
 
     private async Task<IActionResult> CreatePOST(string profileId, string id, string returnUrl, bool stayOnSamePage, Func<ContentItem, Task> conditionallyPublish)

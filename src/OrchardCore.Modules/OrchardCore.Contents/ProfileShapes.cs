@@ -1,9 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrchardCore.ContentManagement;
-using OrchardCore.ContentManagement.Display.ViewModels;
 using OrchardCore.ContentManagement.Metadata;
 using OrchardCore.Contents.Models;
-using OrchardCore.DisplayManagement;
 using OrchardCore.DisplayManagement.Descriptors;
 
 namespace OrchardCore.Contents;
@@ -17,15 +15,25 @@ public class ProfileShapes : IShapeTableProvider
         builder.Describe("ContentsTitle_SummaryAdmin")
                .OnDisplaying(displaying =>
                {
-                   var shape = displaying.Shape;
-                   contentDefinitionManager ??= displaying.ServiceProvider.GetRequiredService<IContentDefinitionManager>();
+                   dynamic shape = displaying.Shape;
 
-                   if (displaying.Shape.TryGetProperty(nameof(ContentItemViewModel.ContentItem), out ContentItem contentItem))
+                   if (shape.ContentItem is ContentItem contentItem)
                    {
-                       var definition = contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
-                       var settings = definition.GetSettings<ContentProfileSettings>();
+                       contentDefinitionManager ??= displaying.ServiceProvider.GetRequiredService<IContentDefinitionManager>();
 
-                       if (settings.ContainedContentTypes != null && settings.ContainedContentTypes.Length > 0)
+                       var definition = contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
+
+                       var profileSettings = definition.GetSettings<ContentProfileSettings>();
+
+                       if (contentItem.ContentType == "Client")
+                       {
+                           profileSettings = new ContentProfileSettings()
+                           {
+                               ContainedContentTypes = new[] { "ClientLocation" },
+                           };
+                       }
+
+                       if (profileSettings.ContainedContentTypes != null && profileSettings.ContainedContentTypes.Length > 0)
                        {
                            displaying.Shape.Metadata.Alternates.Add("Profile_ContentsTitle_SummaryAdmin");
                        }
