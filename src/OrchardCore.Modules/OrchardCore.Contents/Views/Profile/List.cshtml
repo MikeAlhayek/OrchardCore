@@ -5,26 +5,26 @@
 
 @if (Model.Header != null)
 {
-    <div class="card bg-light mb-3">
-        <div class="card-body">
+        <div class="card bg-light mb-3">
+            <div class="card-body">
             @await DisplayAsync(Model.Header)
+            </div>
         </div>
-    </div>
 }
 
 @if (Model.Navigation != null)
 {
-    <div class="card bg-light mb-3">
-        <div class="card-body">
+        <div class="card bg-light mb-3">
+            <div class="card-body">
             @await DisplayAsync(Model.Navigation)
+            </div>
         </div>
-    </div>
 }
 
 @if (Model.Body != null)
 {
-    <div class="card bg-light mb-3">
-        <div class="card-body">
+        <div class="card bg-light mb-3">
+            <div class="card-body">
 
             @{
                 var contentTypeDefinition = ContentDefinitionManager.GetTypeDefinition(Model.ProfileContentItem.ContentType);
@@ -33,18 +33,18 @@
                     contentTypeDefinition = ContentDefinitionManager.GetTypeDefinition(Model.ContentItem.ContentType);
                 }
                 var typeDisplayName = contentTypeDefinition?.DisplayName ?? Model.ContentItem.ContentType.CamelFriendly();
-                                var pageTitle = T["Manage Content"];
+                var pageTitle = T["Manage Content"];
                 if (!string.IsNullOrWhiteSpace(typeDisplayName))
                 {
                     pageTitle = T["Manage {0} Content", (string)typeDisplayName];
                 }
             }
-            <zone Name="Title"><h1>@RenderTitleSegments(pageTitle)</h1></zone>
+                <zone Name="Title"><h1>@RenderTitleSegments(pageTitle)</h1></zone>
 
-            <form asp-action="List" asp-controller="Admin" method="post" id="items-form" autocomplete="off">
+                <form asp-action="List" asp-controller="Admin" method="post" id="items-form" autocomplete="off">
                 @await DisplayAsync(Model.Body)
-            </form>
+                </form>
 
+            </div>
         </div>
-    </div>
 }
