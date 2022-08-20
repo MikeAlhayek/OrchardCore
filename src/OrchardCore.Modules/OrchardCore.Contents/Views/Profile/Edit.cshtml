@@ -14,11 +14,7 @@
 
 @if (Model.Navigation != null)
 {
-    <div class="card bg-light mb-3">
-        <div class="card-body">
-            @await DisplayAsync(Model.Navigation)
-        </div>
-    </div>
+    @await DisplayAsync(Model.Navigation)
 }
 
 @if (Model.Body != null)
@@ -26,16 +22,7 @@
     <div class="card bg-light mb-3">
         <div class="card-body">
 
-            @{
-                var contentTypeDefinition = ContentDefinitionManager.GetTypeDefinition(Model.ProfileContentItem.ContentType);
-                if (Model.ContentItem != null)
-                {
-                    contentTypeDefinition = ContentDefinitionManager.GetTypeDefinition(Model.ContentItem.ContentType);
-                }
-                var typeDisplayName = contentTypeDefinition?.DisplayName ?? Model.ContentItem.ContentType.CamelFriendly();
-            }
-
-            <zone Name="Title"><h1>@RenderTitleSegments(T["Edit {0}", typeDisplayName])</h1></zone>
+            @RenderTitleSegments(T["Edit {0}", Model.ContentType.DisplayName])
 
             <form asp-action="Edit" asp-controller="Profile" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentitemid="@Model.ContentItem?.ContentItemId" asp-route-returnUrl="@Context.Request.Query["ReturnUrl"]" method="post" enctype="multipart/form-data" class="no-multisubmit">
                 @Html.ValidationSummary()

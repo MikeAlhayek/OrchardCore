@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using OrchardCore.ContentManagement.Metadata.Models;
 
 namespace OrchardCore.Contents.ViewModels
 {

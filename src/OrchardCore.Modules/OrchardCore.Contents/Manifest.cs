@@ -54,7 +54,7 @@ using OrchardCore.Modules.Manifest;
 [assembly: Feature(
     Id = "OrchardCore.Contents.Profile",
     Name = "Content Profiles",
-    Description = "Provides a way to render content items in a profile.",
+    Description = "Provides a way to display content items in a profile.",
     Dependencies = new[]
     {
         "OrchardCore.Contents"

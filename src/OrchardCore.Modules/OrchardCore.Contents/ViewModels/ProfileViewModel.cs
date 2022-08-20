@@ -1,4 +1,5 @@
 using OrchardCore.ContentManagement;
+using OrchardCore.ContentManagement.Metadata.Models;
 
 namespace OrchardCore.Contents.ViewModels;
 
@@ -14,4 +15,5 @@ public class ProfileViewModel
 
     public ContentItem ContentItem { get; set; }
 
+    public ContentTypeDefinition ContentType { get; set; }
 }

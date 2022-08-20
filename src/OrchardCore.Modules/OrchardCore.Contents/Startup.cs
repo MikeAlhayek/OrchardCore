@@ -330,6 +330,7 @@ namespace OrchardCore.Contents
             services.AddScoped<IDataMigration, ProfileMigrations>();
             services.AddScoped<INavigationProvider, ProfileMenu>();
             services.AddScoped<IContentTypeDefinitionDisplayDriver, ContentProfileSettingsDisplayDriver>();
+            services.AddScoped<IShapeTableProvider, ProfileMenuShapes>();
         }
 
         public override void Configure(IApplicationBuilder builder, IEndpointRouteBuilder routes, IServiceProvider serviceProvider)
