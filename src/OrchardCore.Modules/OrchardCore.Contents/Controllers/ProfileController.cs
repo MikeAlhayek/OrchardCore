@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using OrchardCore.Admin;
 using OrchardCore.ContentManagement;
 using OrchardCore.ContentManagement.Display;
 using OrchardCore.ContentManagement.Metadata;
@@ -35,6 +36,7 @@ using YesSql.Services;
 namespace OrchardCore.Contents.Controllers;
 
 [Feature("OrchardCore.Contents.Profile")]
+[Admin]
 public class ProfileController : Controller, IUpdateModel
 {
     private readonly IContentManager _contentManager;

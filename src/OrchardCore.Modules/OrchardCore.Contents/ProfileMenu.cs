@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
@@ -56,13 +57,13 @@ public class ProfileMenu : INavigationProvider
 
         builder.Add(S[profileDisplayName], profile => profile
                     .Add(S["Edit"], S["Edit"].PrefixPosition(), edit => edit
-                        .Action("Edit", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
+                        .Action("Edit", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentItemId = String.Empty })
                         .Permission(CommonPermissions.EditContent)
                         .Resource(profileFeature.ProfileContentItem)
                         .LocalNav()
                      )
-                    .Add(S["Display"], S["Display"].PrefixPosition(), display => display
-                        .Action("Display", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
+                    .Add(S["View"], S["View"].PrefixPosition(), display => display
+                        .Action("Display", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentItemId = String.Empty })
                         .Permission(CommonPermissions.ViewContent)
                         .Resource(profileFeature.ProfileContentItem)
                         .LocalNav()

@@ -1,17 +1,50 @@
-@model ListContentsViewModel
-@using OrchardCore.Contents.ViewModels;
+@using OrchardCore.ContentManagement
+@using OrchardCore.ContentManagement.Metadata
+@using OrchardCore.Mvc.Utilities
+@inject IContentDefinitionManager ContentDefinitionManager
 
-@{
-    var contentTypeDisplayName = Model.Options.ContentTypeOptions.Find(x => x.Value == Model.Options.SelectedContentType && x.Value != null)?.Text;
-    var pageTitle = T["Manage Content"];
-    if (!string.IsNullOrWhiteSpace(contentTypeDisplayName))
-    {
-        pageTitle = T["Manage {0} Content", (string)contentTypeDisplayName];
-    }
+@if (Model.Header != null)
+{
+    <div class="card bg-light mb-3">
+        <div class="card-body">
+            @await DisplayAsync(Model.Header)
+        </div>
+    </div>
 }
 
-<zone Name="Title"><h1>@RenderTitleSegments(pageTitle)</h1></zone>
-    
-<form asp-action="List" asp-controller="Admin" method="post" id="items-form" autocomplete="off">
-    @await DisplayAsync(Model)
-</form>
+@if (Model.Navigation != null)
+{
+    <div class="card bg-light mb-3">
+        <div class="card-body">
+            @await DisplayAsync(Model.Navigation)
+        </div>
+    </div>
+}
+
+@if (Model.Body != null)
+{
+    <div class="card bg-light mb-3">
+        <div class="card-body">
+
+            @{
+                var contentTypeDefinition = ContentDefinitionManager.GetTypeDefinition(Model.ProfileContentItem.ContentType);
+                if (Model.ContentItem != null)
+                {
+                    contentTypeDefinition = ContentDefinitionManager.GetTypeDefinition(Model.ContentItem.ContentType);
+                }
+                var typeDisplayName = contentTypeDefinition?.DisplayName ?? Model.ContentItem.ContentType.CamelFriendly();
+                                var pageTitle = T["Manage Content"];
+                if (!string.IsNullOrWhiteSpace(typeDisplayName))
+                {
+                    pageTitle = T["Manage {0} Content", (string)typeDisplayName];
+                }
+            }
+            <zone Name="Title"><h1>@RenderTitleSegments(pageTitle)</h1></zone>
+
+            <form asp-action="List" asp-controller="Admin" method="post" id="items-form" autocomplete="off">
+                @await DisplayAsync(Model.Body)
+            </form>
+
+        </div>
+    </div>
+}
