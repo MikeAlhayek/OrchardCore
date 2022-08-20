@@ -135,7 +135,7 @@ public class ProfileController : Controller, IUpdateModel
         options.CreatableTypes = new List<SelectListItem>();
 
         // Allows non creatable types to be created by another admin page.
-        if (IsCreatable(contentTypeDefinition) || options.CanCreateSelectedContentType)
+        if (contentTypeDefinition.IsCreatable() || options.CanCreateSelectedContentType)
         {
             var contentItem = await CreateContentItemForOwnedByCurrentAsync(profileId, contentTypeDefinition.Name);
 
@@ -221,32 +221,12 @@ public class ProfileController : Controller, IUpdateModel
         options.ContentItemsCount = contentItemSummaries.Count;
         options.TotalItemCount = pagerShape.TotalItemCount;
 
-        var header = await _contentOptionsDisplayManager.BuildEditorAsync(options, _updateModelAccessor.ModelUpdater, false);
-
-        var profileViewModel = new ProfileViewModel
-        {
-            Header = await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, this, "Profile"),
-            Body = await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", viewModel =>
-            {
-                viewModel.ContentItems = contentItemSummaries;
-                viewModel.Pager = pagerShape;
-                viewModel.Options = options;
-                viewModel.Header = header;
-            }),
-            Navigation = await _shapeFactory.CreateAsync("Navigation", Arguments.From(new
-            {
-                // this should be built dynamicly "List/Add" should be added based on the config of each 
-                MenuName = $"profile.{profileContentItem.ContentType.ToLowerInvariant()}",
-                RouteData = GetRouteData()
-            }))
-        };
-
-        var model = await GetProfileShapeAync(profileContentItem, null, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", viewModel =>
+        var model = await GetProfileShapeAync(profileContentItem, null, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", async viewModel =>
         {
             viewModel.ContentItems = contentItemSummaries;
             viewModel.Pager = pagerShape;
             viewModel.Options = options;
-            viewModel.Header = header;
+            viewModel.Header = await _contentOptionsDisplayManager.BuildEditorAsync(options, _updateModelAccessor.ModelUpdater, false);
         }));
 
         return View(model);
@@ -420,14 +400,6 @@ public class ProfileController : Controller, IUpdateModel
 
         var profileSettings = definition.GetSettings<ContentProfileSettings>();
 
-        if (contentItem.ContentType == "Client")
-        {
-            profileSettings = new ContentProfileSettings()
-            {
-                ContainedContentTypes = new[] { "ClientLocation" },
-            };
-        }
-
         var profileContentItem = contentItem;
 
         if (profileSettings == null)
@@ -560,6 +532,11 @@ public class ProfileController : Controller, IUpdateModel
 
     private async Task<IShape> GetProfileShapeAync(ContentItem profileContentItem, ContentItem contentItem, IShape body)
     {
+        HttpContext.Features.Set(new ContentProfileFeature()
+        {
+            ProfileContentItem = profileContentItem,
+        });
+
         var shape = await _shapeFactory.CreateAsync<ProfileViewModel>("ProfileViewModel", async viewModel =>
         {
             viewModel.ProfileContentItem = profileContentItem;
@@ -687,12 +664,6 @@ public class ProfileController : Controller, IUpdateModel
         }
 
         return this.LocalRedirect(returnUrl, true);
-    }
-
-
-    private static bool IsCreatable(ContentTypeDefinition contentTypeDefinition)
-    {
-        return contentTypeDefinition.GetSettings<ContentTypeSettings>().Creatable;
     }
 
     private async Task<ContentItem> CreateContentItemForOwnedByCurrentAsync(string profileId, string contentType)

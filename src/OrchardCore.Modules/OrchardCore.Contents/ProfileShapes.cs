@@ -25,14 +25,6 @@ public class ProfileShapes : IShapeTableProvider
 
                        var profileSettings = definition.GetSettings<ContentProfileSettings>();
 
-                       if (contentItem.ContentType == "Client")
-                       {
-                           profileSettings = new ContentProfileSettings()
-                           {
-                               ContainedContentTypes = new[] { "ClientLocation" },
-                           };
-                       }
-
                        if (profileSettings.ContainedContentTypes != null && profileSettings.ContainedContentTypes.Length > 0)
                        {
                            displaying.Shape.Metadata.Alternates.Add("Profile_ContentsTitle_SummaryAdmin");

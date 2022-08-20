@@ -41,27 +41,13 @@ public class ProfileMenu : INavigationProvider
 
         var profileSettings = definition.GetSettings<ContentProfileSettings>();
 
-        if (definition.Name == "Client")
-        {
-            profileSettings = new ContentProfileSettings()
-            {
-                ContainedContentTypes = new[] { "ClientLocation" },
-            };
-        }
-
         if (profileSettings == null)
         {
             return;
         }
+        var profileFeature = _httpContextAccessor.HttpContext.Features.Get<ContentProfileFeature>();
 
-        if (!_httpContextAccessor.HttpContext.Request.RouteValues.TryGetValue("profileId", out var profileId))
-        {
-            return;
-        }
-
-        var profileItem = await _contentManager.GetAsync(profileId.ToString());
-
-        if (profileId == null)
+        if (profileFeature == null)
         {
             return;
         }
@@ -70,15 +56,15 @@ public class ProfileMenu : INavigationProvider
 
         builder.Add(S[profileDisplayName], profile => profile
                     .Add(S["Edit"], S["Edit"].PrefixPosition(), edit => edit
-                        .Action("Edit", "Profile", new { area = "OrchardCore.Contents", profileId = profileId.ToString() })
+                        .Action("Edit", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
                         .Permission(CommonPermissions.EditContent)
-                        .Resource(profileItem)
+                        .Resource(profileFeature.ProfileContentItem)
                         .LocalNav()
                      )
                     .Add(S["Display"], S["Display"].PrefixPosition(), display => display
-                        .Action("Display", "Profile", new { area = "OrchardCore.Contents", profileId = profileId.ToString() })
+                        .Action("Display", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
                         .Permission(CommonPermissions.ViewContent)
-                        .Resource(profileItem)
+                        .Resource(profileFeature.ProfileContentItem)
                         .LocalNav()
                      )
          );
@@ -94,8 +80,9 @@ public class ProfileMenu : INavigationProvider
             {
                 builder.Add(S[typeDisplayName], type => type
                             .Add(S["List"], S["List"].PrefixPosition(), list => list
-                                .Action("List", "Profile", new { area = "OrchardCore.Contents", profileId = profileId.ToString(), contentTypeId = containedContentType })
+                                .Action("List", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentTypeId = containedContentType })
                                 .Permission(CommonPermissions.ViewContent)
+                                .Resource(dummyContainedItem)
                                 .LocalNav()
                             )
                         );
@@ -105,8 +92,9 @@ public class ProfileMenu : INavigationProvider
             {
                 builder.Add(S[typeDisplayName], type => type
                             .Add(S["New"], S["New"].PrefixPosition(), list => list
-                                .Action("Create", "Profile", new { area = "OrchardCore.Contents", profileId = profileId.ToString(), contentTypeId = containedContentType })
+                                .Action("Create", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentTypeId = containedContentType })
                                 .Permission(CommonPermissions.EditContent)
+                                .Resource(dummyContainedItem)
                                 .LocalNav()
                             )
                         );
