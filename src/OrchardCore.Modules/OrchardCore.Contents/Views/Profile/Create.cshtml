@@ -22,7 +22,9 @@
     <div class="card bg-light mb-3">
         <div class="card-body">
 
-            @RenderTitleSegments(T["New {0}", Model.ContentType?.DisplayName])
+            @{
+                RenderTitleSegments(T["New {0}", Model.ContentType?.DisplayName]);
+            }
 
             <form asp-action="Create" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentTypeId="@Model.ContentType.Name" asp-route-returnUrl="@Context.Request.Query["ReturnUrl"]" method="post" enctype="multipart/form-data" class="no-multisubmit">
                 @Html.ValidationSummary()

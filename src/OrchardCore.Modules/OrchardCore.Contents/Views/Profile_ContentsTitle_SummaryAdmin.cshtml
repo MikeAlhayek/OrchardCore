@@ -7,6 +7,10 @@
 {
     <a asp-controller="Profile" asp-action="Edit" asp-route-profileId="@Model.ContentItem.ContentItemId">@Model.ContentItem</a>
 }
+else if (await AuthorizationService.AuthorizeAsync(User, CommonPermissions.ViewContent, Model.ContentItem))
+{
+    <a asp-controller="Profile" asp-action="Display" asp-route-profileId="@Model.ContentItem.ContentItemId">@Model.ContentItem</a>
+}
 else
 {
     @Model.ContentItem

@@ -20,7 +20,7 @@ public class ContainedProfilePartIndexProvider : IndexProvider<ContentItem>
                {
                    var profilePart = contentItem.As<ContainedProfilePart>();
 
-                   if (profilePart == null || String.IsNullOrWhiteSpace(profilePart.ProfileContentItemId))
+                   if (String.IsNullOrWhiteSpace(profilePart?.ProfileContentItemId))
                    {
                        return null;
                    }

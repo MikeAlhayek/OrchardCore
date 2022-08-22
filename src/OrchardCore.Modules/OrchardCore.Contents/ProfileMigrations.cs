@@ -10,7 +10,7 @@ public class ProfileMigrations : DataMigration
     {
         SchemaBuilder.CreateMapIndexTable<ContainedProfilePartIndex>(table => table
             .Column<string>("ProfileContentItemId", c => c.NotNull().WithLength(26))
-            .Column<int>("ContentItemId", c => c.NotNull().WithLength(26))
+            .Column<string>("ContentItemId", c => c.NotNull().WithLength(26))
         );
 
         SchemaBuilder.AlterIndexTable<ContainedProfilePartIndex>(table => table

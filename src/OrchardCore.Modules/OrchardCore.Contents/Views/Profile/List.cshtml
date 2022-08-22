@@ -21,8 +21,9 @@
 {
     <div class="card bg-light mb-3">
         <div class="card-body">
-            @RenderTitleSegments(T["Manage {0} Content", Model.ContentType.DisplayName])
-
+            @{
+                RenderTitleSegments(T["Manage {0} Content", Model.ContentType.DisplayName]);
+            }
             <form asp-action="List" asp-controller="Profile" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentTypeId="@Model.ContentType.Name" method="post" id="items-form" autocomplete="off">
                 @await DisplayAsync(Model.Body)
             </form>

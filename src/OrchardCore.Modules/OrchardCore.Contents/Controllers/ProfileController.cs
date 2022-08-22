@@ -374,10 +374,18 @@ public class ProfileController : Controller, IUpdateModel
 
     [HttpPost, ActionName("Create")]
     [FormValueRequired("submit.Save")]
-    public Task<IActionResult> CreatePOST(string profileId, string contentTypeId, [Bind(Prefix = "submit.Save")] string submitSave, string returnUrl)
+    public async Task<IActionResult> CreatePOST(string profileId, string contentTypeId, [Bind(Prefix = "submit.Save")] string submitSave, string returnUrl)
     {
         var stayOnSamePage = submitSave == "submit.SaveAndContinue";
-        return CreatePOST(profileId, contentTypeId, returnUrl, stayOnSamePage, async contentItem =>
+
+        var dummyContent = await CreateContentItemForOwnedByCurrentAsync(contentTypeId, profileId);
+
+        if (!await IsAuthorizedAsync(CommonPermissions.PublishContent, dummyContent))
+        {
+            return Forbid();
+        }
+
+        return await CreatePOST(profileId, contentTypeId, returnUrl, stayOnSamePage, async contentItem =>
         {
             await _contentManager.SaveDraftAsync(contentItem);
 
@@ -690,6 +698,7 @@ public class ProfileController : Controller, IUpdateModel
 
         await conditionallyPublish(contentItem);
 
+        /*
         if (!String.IsNullOrEmpty(returnUrl) && !stayOnSamePage)
         {
             return this.LocalRedirect(returnUrl, true);
@@ -703,6 +712,19 @@ public class ProfileController : Controller, IUpdateModel
         }
 
         return RedirectToRoute(adminRouteValues);
+        */
+
+        if (returnUrl == null)
+        {
+            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { "ContentItemId", contentItem.ContentItemId } });
+        }
+
+        if (stayOnSamePage)
+        {
+            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { "ContentItemId", contentItem.ContentItemId }, { "returnUrl", returnUrl } });
+        }
+
+        return this.LocalRedirect(returnUrl, true);
     }
 
     private async Task<IActionResult> EditPOST(string profileId, string contentItemId, string returnUrl, bool stayOnSamePage, Func<ContentItem, Task> conditionallyPublish)
@@ -769,12 +791,12 @@ public class ProfileController : Controller, IUpdateModel
 
         if (returnUrl == null)
         {
-            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { "ContentItemId", contentItem.ContentItemId } });
+            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { "ContentItemId", contentItem.ContentItemId } });
         }
 
         if (stayOnSamePage)
         {
-            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { "ContentItemId", contentItem.ContentItemId }, { "returnUrl", returnUrl } });
+            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { "ContentItemId", contentItem.ContentItemId }, { "returnUrl", returnUrl } });
         }
 
         return this.LocalRedirect(returnUrl, true);
@@ -784,6 +806,7 @@ public class ProfileController : Controller, IUpdateModel
     {
         var contentItem = await _contentManager.NewAsync(contentType);
         contentItem.Owner = CurrentUserId();
+        contentItem.Weld<ContainedProfilePart>();
         contentItem.Alter<ContainedProfilePart>(part =>
         {
             part.ProfileContentItemId = profileId;
