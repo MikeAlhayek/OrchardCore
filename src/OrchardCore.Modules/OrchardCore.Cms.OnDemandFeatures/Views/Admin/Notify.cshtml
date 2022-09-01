@@ -1,0 +1,9 @@
+@{
+    Model.Metadata.Type = "Content_Edit";
+    Model.Metadata.Alternates.Clear();
+}
+
+<form asp-action="Notify" method="post" enctype="multipart/form-data" class="no-multisubmit">
+    @Html.ValidationSummary()
+    @await DisplayAsync(Model)
+</form>
