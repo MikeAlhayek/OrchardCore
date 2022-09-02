@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Fluid.Values;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using OrchardCore.ContentManagement;
 using OrchardCore.Liquid;
 using OrchardCore.Notifications.Models;
@@ -26,21 +27,22 @@ public class NotificationMessageProvider : INotificationMessageProvider
     private readonly IShortcodeService _shortcodeService;
     private readonly HtmlEncoder _htmlEncoder;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly UserManager<IUser> _userManager;
+    private readonly IServiceProvider _serviceProvider;
+    private UserManager<IUser> _userManager;
 
     public NotificationMessageProvider(YesSql.ISession session,
         ILiquidTemplateManager liquidTemplateManager,
         IShortcodeService shortcodeService,
         HtmlEncoder htmlEncoder,
-          IHttpContextAccessor httpContextAccessor,
-     UserManager<IUser> userManager)
+        IHttpContextAccessor httpContextAccessor,
+        IServiceProvider serviceProvider)
     {
         _session = session;
         _liquidTemplateManager = liquidTemplateManager;
         _shortcodeService = shortcodeService;
         _htmlEncoder = htmlEncoder;
         _httpContextAccessor = httpContextAccessor;
-        _userManager = userManager;
+        _serviceProvider = serviceProvider;
     }
 
     public async Task<IEnumerable<NotificationMessageContext>> GetAsync(string template, Dictionary<string, string> specificArguments)
@@ -49,7 +51,6 @@ public class NotificationMessageProvider : INotificationMessageProvider
         {
             throw new ArgumentException($"{nameof(template)} cannot be empty.");
         }
-
         var templateItems = await _session.Query<ContentItem, NotificationTemplateIndex>(x => x.TemplateName == template).ListAsync();
 
         var arguments = new Dictionary<string, FluidValue>();
@@ -79,6 +80,8 @@ public class NotificationMessageProvider : INotificationMessageProvider
 
         if (_httpContextAccessor.HttpContext.User.Identity.IsAuthenticated)
         {
+            // resolve userManager from the serviceProvider to eliminate circular dependency
+            _userManager ??= _serviceProvider.GetRequiredService<UserManager<IUser>>();
             user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
         }
 

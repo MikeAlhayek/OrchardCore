@@ -36,6 +36,7 @@ public class NotificationTemplatesMigrations : DataMigration
                 .OfType(nameof(MarkdownField))
                 .WithDisplayName("Email's Body")
                 .WithPosition("2")
+                .WithEditor("TextArea")
                 .WithSettings(new MarkdownFieldSettings()
                 {
                     SanitizeHtml = true,

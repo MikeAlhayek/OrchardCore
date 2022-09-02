@@ -17,5 +17,5 @@ public class NewUserCreatedNotificationTemplateProvider : INotificationTemplateP
         "username",
         "password",
         "email"
-      };
+    };
 }

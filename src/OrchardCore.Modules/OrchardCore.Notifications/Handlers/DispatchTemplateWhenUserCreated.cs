@@ -1,11 +1,37 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using OrchardCore.ContentManagement;
+using OrchardCore.ContentManagement.Handlers;
 using OrchardCore.Email;
+using OrchardCore.Notifications.Core;
 using OrchardCore.Users.Handlers;
 using OrchardCore.Users.Models;
 
 namespace OrchardCore.Notifications.Handlers;
+
+public class DisptachTemplateWhenContentPublished : ContentHandlerBase
+{
+    private readonly ISession _session;
+
+    public DisptachTemplateWhenContentPublished(ISession session)
+    {
+        _session = session;
+    }
+
+    public override Task PublishedAsync(PublishContentContext context)
+    {
+        var templatePickerPart = context.PublishingItem.As<NotificationTemplatePickerPart>();
+
+        if (String.Equals(templatePickerPart?.EventName, "Published", StringComparison.OrdinalIgnoreCase))
+        {
+            // dispatch
+            return Task.CompletedTask;
+        }
+
+        return Task.CompletedTask;
+    }
+}
 
 public class DispatchTemplateWhenUserCreated : UserEventHandlerBase
 {
@@ -44,13 +70,13 @@ public class DispatchTemplateWhenUserCreated : UserEventHandlerBase
 
         foreach (var message in messages)
         {
-            var mailMessage = GetMainMessage(user.Email, message);
+            var mailMessage = GetMailMessage(user.Email, message);
 
             await _smtpService.SendAsync(mailMessage);
         }
     }
 
-    private static MailMessage GetMainMessage(string sendTo, NotificationMessageContext message)
+    private static MailMessage GetMailMessage(string sendTo, NotificationMessageContext message)
     {
         var mailMessage = new MailMessage()
         {

@@ -5,11 +5,13 @@ using OrchardCore.Data.Migration;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.Environment.Shell.Configuration;
 using OrchardCore.Modules;
+using OrchardCore.Notifications.Core;
 using OrchardCore.Notifications.Drivers;
 using OrchardCore.Notifications.Handlers;
 using OrchardCore.Notifications.Indexes;
 using OrchardCore.Notifications.Migrations;
 using OrchardCore.Notifications.Models;
+using OrchardCore.Users.Handlers;
 using OrchardCore.Users.Models;
 using YesSql.Indexes;
 
@@ -53,6 +55,8 @@ public class NotificationTemplatesStartup : StartupBase
         services.AddContentPart<NotificationTemplatePart>()
             .UseDisplayDriver<NotificationTemplatePartDisplayDriver>();
 
+        services.AddContentPart<NotificationTemplatePickerPart>();
+
         services.AddScoped<IDataMigration, NotificationTemplatesMigrations>();
         services.AddSingleton<IIndexProvider, NotificationTemplateIndexProvider>();
         services.AddScoped<INotificationTemplateDispatcher, DefaultTemplateDispatcher>();
@@ -66,9 +70,6 @@ public class NewUserNotificationTemplatesStartup : StartupBase
     public override void ConfigureServices(IServiceCollection services)
     {
         services.AddScoped<INotificationTemplateProvider, NewUserCreatedNotificationTemplateProvider>();
-
-        // @jtkech for some reason uncommenting this line will cause the app not to startup.
-        // This line is needed but not sure why it would cause such an issue
-        //services.AddScoped<IUserEventHandler, DispatchTemplateWhenUserCreated>();
+        services.AddScoped<IUserEventHandler, DispatchTemplateWhenUserCreated>();
     }
 }
