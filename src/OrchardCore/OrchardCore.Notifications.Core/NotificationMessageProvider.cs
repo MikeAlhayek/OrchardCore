@@ -45,26 +45,37 @@ public class NotificationMessageProvider : INotificationMessageProvider
         _serviceProvider = serviceProvider;
     }
 
-    public async Task<IEnumerable<NotificationMessageContext>> GetAsync(string template, Dictionary<string, string> specificArguments)
+    public async Task<IEnumerable<NotificationMessageContext>> GetAsync(string template, Dictionary<string, string> messageArguments)
     {
         if (String.IsNullOrWhiteSpace(template))
         {
             throw new ArgumentException($"{nameof(template)} cannot be empty.");
         }
+
         var templateItems = await _session.Query<ContentItem, NotificationTemplateIndex>(x => x.TemplateName == template).ListAsync();
+
+        return await GetAsync(templateItems, messageArguments);
+    }
+
+    public async Task<IEnumerable<NotificationMessageContext>> GetAsync(IEnumerable<ContentItem> templates, Dictionary<string, string> messageArguments)
+    {
+        if (templates == null)
+        {
+            throw new ArgumentNullException(nameof(templates));
+        }
 
         var arguments = new Dictionary<string, FluidValue>();
 
-        foreach (var argument in specificArguments)
+        foreach (var messageArgument in messageArguments)
         {
-            arguments.TryAdd(argument.Key, new ObjectValue(argument.Value));
+            arguments.TryAdd(messageArgument.Key, new ObjectValue(messageArgument.Value));
         }
 
         var messages = new List<NotificationMessageContext>();
 
         var userIds = new List<string>();
 
-        foreach (var templateItem in templateItems)
+        foreach (var templateItem in templates)
         {
             var deliveryTo = templateItem.As<NotificationTemplateDeliveryPart>();
 
@@ -85,17 +96,17 @@ public class NotificationMessageProvider : INotificationMessageProvider
             user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
         }
 
-        foreach (var templateItem in templateItems)
+        foreach (var template in templates)
         {
-            var templatePart = templateItem.As<NotificationMessageTemplatePart>();
+            var templatePart = template.As<NotificationMessageTemplatePart>();
 
             var body = new NotificationMessageContext()
             {
-                Subject = await GetTextBodyAsync(arguments, templateItem, templatePart.Subject.Text),
-                TextBody = await GetTextBodyAsync(arguments, templateItem, templatePart.Body.Markdown),
+                Subject = await GetTextBodyAsync(arguments, template, templatePart.Subject.Text),
+                TextBody = await GetTextBodyAsync(arguments, template, templatePart.Body.Markdown),
             };
 
-            var deliveryToPart = templateItem.As<NotificationTemplateDeliveryPart>();
+            var deliveryToPart = template.As<NotificationTemplateDeliveryPart>();
 
             if (NotificationTemplateConstants.CurrentUserValue.Equals(deliveryToPart.SendTo?.Text) && user != null)
             {
@@ -111,7 +122,6 @@ public class NotificationMessageProvider : INotificationMessageProvider
 
         return messages;
     }
-
     private async Task<string> GetTextBodyAsync(Dictionary<string, FluidValue> arguments, ContentItem templateItem, string message)
     {
         var body = await _liquidTemplateManager.RenderStringAsync(message, _htmlEncoder, null, arguments);

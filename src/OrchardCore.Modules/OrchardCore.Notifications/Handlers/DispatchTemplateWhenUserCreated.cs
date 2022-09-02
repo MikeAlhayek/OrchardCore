@@ -1,37 +1,11 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using OrchardCore.ContentManagement;
-using OrchardCore.ContentManagement.Handlers;
 using OrchardCore.Email;
-using OrchardCore.Notifications.Core;
 using OrchardCore.Users.Handlers;
 using OrchardCore.Users.Models;
 
 namespace OrchardCore.Notifications.Handlers;
-
-public class DisptachTemplateWhenContentPublished : ContentHandlerBase
-{
-    private readonly ISession _session;
-
-    public DisptachTemplateWhenContentPublished(ISession session)
-    {
-        _session = session;
-    }
-
-    public override Task PublishedAsync(PublishContentContext context)
-    {
-        var templatePickerPart = context.PublishingItem.As<NotificationTemplatePickerPart>();
-
-        if (String.Equals(templatePickerPart?.EventName, "Published", StringComparison.OrdinalIgnoreCase))
-        {
-            // dispatch
-            return Task.CompletedTask;
-        }
-
-        return Task.CompletedTask;
-    }
-}
 
 public class DispatchTemplateWhenUserCreated : UserEventHandlerBase
 {

@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using OrchardCore.ContentManagement;
 using OrchardCore.ContentManagement.Display.ContentDisplay;
+using OrchardCore.ContentManagement.Handlers;
 using OrchardCore.Data.Migration;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.Environment.Shell.Configuration;
@@ -55,7 +56,10 @@ public class NotificationTemplatesStartup : StartupBase
         services.AddContentPart<NotificationTemplatePart>()
             .UseDisplayDriver<NotificationTemplatePartDisplayDriver>();
 
-        services.AddContentPart<NotificationTemplatePickerPart>();
+        services.AddContentPart<NotificationTemplatePickerPart>()
+            .UseDisplayDriver<NotificationTemplatePickerPartDisplayDriver>();
+
+        services.AddScoped<IContentHandler, DisptachTemplateForContents>();
 
         services.AddScoped<IDataMigration, NotificationTemplatesMigrations>();
         services.AddSingleton<IIndexProvider, NotificationTemplateIndexProvider>();

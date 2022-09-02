@@ -6,5 +6,5 @@ public class NotificationTemplatePickerPart : ContentPart
 {
     public string EventName { get; set; }
 
-    public string NotificationTemplateContentItemId { get; set; }
+    public string[] NotificationTemplateContentItemIds { get; set; }
 }
