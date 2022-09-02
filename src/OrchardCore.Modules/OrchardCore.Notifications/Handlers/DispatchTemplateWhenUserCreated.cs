@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using OrchardCore.Email;
@@ -23,13 +24,13 @@ public class DispatchTemplateWhenUserCreated : UserEventHandlerBase
 
     public override async Task CreatedAsync(UserCreateContext context)
     {
-        if (_httpContextAccessor == null || _httpContextAccessor.HttpContext == null
-            || !_httpContextAccessor.HttpContext.Request.Form.TryGetValue("User.Password", out var password))
-        {
-            return;
-        }
-
-        if (context.User is not User user)
+        if (_httpContextAccessor == null
+            || _httpContextAccessor.HttpContext == null
+            || _httpContextAccessor.HttpContext.Request == null
+            || _httpContextAccessor.HttpContext.Request.Form == null
+            || !_httpContextAccessor.HttpContext.Request.Form.TryGetValue("User.Password", out var password)
+            || context.User is not User user
+            )
         {
             return;
         }
@@ -37,30 +38,38 @@ public class DispatchTemplateWhenUserCreated : UserEventHandlerBase
         var messages = await _notificationMessageProvider.GetAsync(NewUserCreatedNotificationTemplateProvider.Key, new()
         {
             { "password", password },
-            { "username", user.UserName }
+            { "username", user.UserName },
+            { "email", user.Email },
         });
 
         foreach (var message in messages)
         {
-            var mailMessage = new MailMessage()
-            {
-                To = user.Email,
-                Subject = message.Subject,
-            };
-
-            if (!string.IsNullOrEmpty(message.HtmlBody))
-            {
-                mailMessage.IsBodyHtml = true;
-                mailMessage.Body = message.HtmlBody;
-            }
-
-            if (!string.IsNullOrEmpty(message.TextBody))
-            {
-                mailMessage.IsBodyText = true;
-                mailMessage.BodyText = message.TextBody;
-            }
+            var mailMessage = GetMainMessage(user.Email, message);
 
             await _smtpService.SendAsync(mailMessage);
         }
+    }
+
+    private static MailMessage GetMainMessage(string sendTo, NotificationMessageContext message)
+    {
+        var mailMessage = new MailMessage()
+        {
+            To = sendTo,
+            Subject = message.Subject,
+        };
+
+        if (!String.IsNullOrEmpty(message.HtmlBody))
+        {
+            mailMessage.IsBodyHtml = true;
+            mailMessage.Body = message.HtmlBody;
+        }
+
+        if (!String.IsNullOrEmpty(message.TextBody))
+        {
+            mailMessage.IsBodyText = true;
+            mailMessage.BodyText = message.TextBody;
+        }
+
+        return mailMessage;
     }
 }

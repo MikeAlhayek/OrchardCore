@@ -10,7 +10,6 @@ using OrchardCore.Notifications.Handlers;
 using OrchardCore.Notifications.Indexes;
 using OrchardCore.Notifications.Migrations;
 using OrchardCore.Notifications.Models;
-using OrchardCore.Users.Handlers;
 using OrchardCore.Users.Models;
 using YesSql.Indexes;
 
@@ -67,6 +66,9 @@ public class NewUserNotificationTemplatesStartup : StartupBase
     public override void ConfigureServices(IServiceCollection services)
     {
         services.AddScoped<INotificationTemplateProvider, NewUserCreatedNotificationTemplateProvider>();
-        services.AddScoped<IUserEventHandler, DispatchTemplateWhenUserCreated>();
+
+        // @jtkech for some reason uncommenting this line will cause the app not to startup.
+        // This line is needed but not sure why it would cause such an issue
+        //services.AddScoped<IUserEventHandler, DispatchTemplateWhenUserCreated>();
     }
 }

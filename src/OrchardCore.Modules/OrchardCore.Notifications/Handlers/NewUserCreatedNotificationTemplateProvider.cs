@@ -15,6 +15,7 @@ public class NewUserCreatedNotificationTemplateProvider : INotificationTemplateP
     public IEnumerable<string> GetArguments() => new List<string>()
     {
         "username",
-        "password"
+        "password",
+        "email"
       };
 }
