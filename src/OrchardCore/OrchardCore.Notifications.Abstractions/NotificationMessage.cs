@@ -1,6 +1,6 @@
-﻿using System.Globalization;
+using System.Globalization;
 
-namespace OrchardCore.Notifications.Abstractions;
+namespace OrchardCore.Notifications;
 
 public class NotificationMessage
 {

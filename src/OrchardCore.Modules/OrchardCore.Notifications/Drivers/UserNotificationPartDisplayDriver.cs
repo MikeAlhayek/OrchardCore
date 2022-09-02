@@ -8,8 +8,6 @@ using OrchardCore.DisplayManagement.Entities;
 using OrchardCore.DisplayManagement.Handlers;
 using OrchardCore.DisplayManagement.ModelBinding;
 using OrchardCore.DisplayManagement.Views;
-using OrchardCore.Notifications.Abstractions;
-using OrchardCore.Notifications.Core;
 using OrchardCore.Notifications.ViewModels;
 using OrchardCore.Users.Models;
 

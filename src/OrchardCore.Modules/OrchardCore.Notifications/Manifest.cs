@@ -1,7 +1,6 @@
 using OrchardCore.Modules.Manifest;
 
 [assembly: Module(
-    Id = "OrchardCore.Notifications",
     Author = "The Orchard Core Team",
     Website = "https://orchardcore.net",
     Version = "1.0.0"
@@ -25,4 +24,17 @@ using OrchardCore.Modules.Manifest;
         "OrchardCore.Notifications",
         "OrchardCore.Email"
     }
+)]
+
+[assembly: Feature(
+    Id = "OrchardCore.Notifications.Templates",
+    Name = "Notification Templates",
+    Description = "Provides a way to create notification based templates.",
+    Dependencies = new[] {
+        "OrchardCore.ContentFields",
+        "OrchardCore.Notifications",
+        "OrchardCore.Markdown",
+        "OrchardCore.Title"
+    },
+    Category = "Notifications"
 )]

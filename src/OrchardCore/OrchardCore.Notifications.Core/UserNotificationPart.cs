@@ -1,6 +1,6 @@
 using OrchardCore.ContentManagement;
 
-namespace OrchardCore.Notifications.Core;
+namespace OrchardCore.Notifications;
 
 public class UserNotificationPart : ContentPart
 {

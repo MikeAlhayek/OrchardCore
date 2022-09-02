@@ -1,0 +1,43 @@
+@model NotificationTemplatePartViewModel
+@using System
+@using Newtonsoft.Json
+
+<div class="mb-3">
+
+    <label asp-for="TemaplateName">@T["Template"]</label>
+    <select asp-for="TemaplateName" class="form-select">
+        <option value="">@T["Select an event to dispatch template"]</option>
+        @foreach (var option in Model.Options)
+        {
+            <option value="@option.Name" data-arguments="@JsonConvert.SerializeObject(option.Arguments ?? Enumerable.Empty<string>())">@option.Description</option>
+        }
+    </select>
+
+    <div class="hint mt-1 d-none" id="argumentContainer">
+        <span>@T["The following templates can be used to create the message"] </span>
+        <span id="argumentContainerBody"></span>
+    </div>
+</div>
+
+<script at="Foot">
+    document.addEventListener('DOMContentLoaded', function() {
+        let argumentContainer = document.getElementById('argumentContainer');
+        let argumentContainerBody = document.getElementById('argumentContainerBody');
+        let menu = document.getElementById('@Html.IdFor(x => x.TemaplateName)');
+        if (argumentContainer == null || menu == null) {
+            return;
+        }
+        menu.addEventListener('change', function(event) {
+            (argumentContainerBody || argumentContainer).innerHTML = '';
+            if (event.target.value) {
+                var arguments = JSON.parse(event.target.options[event.target.selectedIndex].getAttribute('data-arguments') || '[]');
+                for (let i = 0; i < arguments.length; i++) {
+                    (argumentContainerBody || argumentContainer).innerHTML += '<code class="badge bg-secondary me-1">{{ ' + arguments[i] + ' }}</code>';
+                }
+                argumentContainer.classList.remove('d-none');
+            } else {
+                argumentContainer.classList.add('d-none');
+            }
+        });
+    });
+</script>

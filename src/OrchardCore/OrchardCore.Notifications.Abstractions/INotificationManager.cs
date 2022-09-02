@@ -1,6 +1,6 @@
 using OrchardCore.Users;
 
-namespace OrchardCore.Notifications.Abstractions;
+namespace OrchardCore.Notifications;
 
 public interface INotificationManager
 {

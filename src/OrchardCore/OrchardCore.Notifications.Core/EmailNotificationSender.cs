@@ -1,11 +1,10 @@
 using System;
 using System.Threading.Tasks;
 using OrchardCore.Email;
-using OrchardCore.Notifications.Abstractions;
 using OrchardCore.Users;
 using OrchardCore.Users.Models;
 
-namespace OrchardCore.Notifications.Core;
+namespace OrchardCore.Notifications;
 
 public class EmailNotificationSender : INotificationSender
 {

@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OrchardCore.Entities;
-using OrchardCore.Notifications.Abstractions;
 using OrchardCore.Users;
 using OrchardCore.Users.Models;
 
-namespace OrchardCore.Notifications.Core;
+namespace OrchardCore.Notifications;
 
 public class NotificationManager : INotificationManager
 {

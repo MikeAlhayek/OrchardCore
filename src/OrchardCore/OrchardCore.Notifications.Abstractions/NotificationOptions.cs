@@ -1,4 +1,4 @@
-namespace OrchardCore.Notifications.Abstractions;
+namespace OrchardCore.Notifications;
 
 public class NotificationOptions
 {

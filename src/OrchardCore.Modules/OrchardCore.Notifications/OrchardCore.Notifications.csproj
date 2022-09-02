@@ -27,6 +27,9 @@
     <ProjectReference Include="..\..\OrchardCore\OrchardCore.Navigation.Core\OrchardCore.Navigation.Core.csproj" />
     <ProjectReference Include="..\..\OrchardCore\OrchardCore.Notifications.Core\OrchardCore.Notifications.Core.csproj" />
     <ProjectReference Include="..\..\OrchardCore\OrchardCore.Users.Core\OrchardCore.Users.Core.csproj" />
+    <ProjectReference Include="..\OrchardCore.ContentFields\OrchardCore.ContentFields.csproj" />
+    <ProjectReference Include="..\OrchardCore.Markdown\OrchardCore.Markdown.csproj" />
+    <ProjectReference Include="..\OrchardCore.Title\OrchardCore.Title.csproj" />
   </ItemGroup>
 
 </Project>
