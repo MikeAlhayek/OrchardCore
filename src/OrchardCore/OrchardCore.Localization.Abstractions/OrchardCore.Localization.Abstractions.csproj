@@ -1,14 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>OrchardCore.Localization</RootNamespace>
+    <RootNamespace>OrchardCore.Notifications</RootNamespace>
     <!-- NuGet properties-->
-    <Title>OrchardCore Localization Abstractions</Title>
-    <Description>$(OCFrameworkDescription)
+    <Title>OrchardCore Notifications Abstractions</Title>
+    <Description>$(OCCMSDescription)
 
-    Abstractions for Localization
-    </Description>
-    <PackageTags>$(PackageTags) OrchardCoreFramework Localization</PackageTags>
+    Abstractions for Notifications</Description>
+    <PackageTags>$(PackageTags) OrchardCore Notifications Abstractions</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
