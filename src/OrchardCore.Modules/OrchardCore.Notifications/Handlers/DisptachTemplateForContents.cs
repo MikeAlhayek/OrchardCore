@@ -5,8 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OrchardCore.ContentManagement;
 using OrchardCore.ContentManagement.Handlers;
+using OrchardCore.ContentManagement.Metadata;
 using OrchardCore.Modules;
-using OrchardCore.Notifications.Core;
 
 namespace OrchardCore.Notifications.Handlers;
 
@@ -15,17 +15,20 @@ public class DisptachTemplateForContents : IContentHandler
     private readonly IServiceProvider _serviceProvider;
     private readonly INotificationMessageProvider _notificationMessageProvider;
     private readonly IEnumerable<INotificationSender> _notificationSenders;
+    private readonly IContentDefinitionManager _contentDefinitionManager;
     private readonly ILogger _logger;
     private IContentManager _contentManager;
 
     public DisptachTemplateForContents(IServiceProvider serviceProvider,
         INotificationMessageProvider notificationMessageProvider,
         IEnumerable<INotificationSender> notificationSenders,
+        IContentDefinitionManager contentDefinitionManager,
         ILogger<DisptachTemplateForContents> logger)
     {
         _serviceProvider = serviceProvider;
         _notificationMessageProvider = notificationMessageProvider;
         _notificationSenders = notificationSenders;
+        _contentDefinitionManager = contentDefinitionManager;
         _logger = logger;
     }
 
@@ -176,11 +179,18 @@ public class DisptachTemplateForContents : IContentHandler
 
     private async Task HandleEventAsync(ContentItem contentItem, string eventName)
     {
-        var templatePickerPart = contentItem.As<NotificationTemplatePickerPart>();
+        var definition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-        if (String.Equals(templatePickerPart?.EventName, eventName, StringComparison.OrdinalIgnoreCase))
+        var notificationSettings = definition.GetSettings<ContentNotificationSettings>();
+
+        if (!notificationSettings.SendNotification)
         {
-            var templateIds = templatePickerPart.NotificationTemplateContentItemIds ?? Array.Empty<string>();
+            return;
+        }
+
+        if (String.Equals(notificationSettings?.EventName, eventName, StringComparison.OrdinalIgnoreCase))
+        {
+            var templateIds = notificationSettings.NotificationTemplateContentItemIds ?? Array.Empty<string>();
 
             await DispatchTemplatesAsync(templateIds, contentItem);
         }
