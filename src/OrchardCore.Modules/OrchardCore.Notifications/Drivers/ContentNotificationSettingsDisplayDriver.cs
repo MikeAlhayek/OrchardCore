@@ -41,7 +41,7 @@ public class ContentNotificationSettingsDisplayDriver : ContentTypeDefinitionDis
             .OrderBy(index => index.DisplayText)
             .ListAsync())
             .Select(x => new SelectListItem(x.DisplayText, x.ContentItemId));
-        });
+        }).Location("Content:7");
     }
 
     public override async Task<IDisplayResult> UpdateAsync(ContentTypeDefinition contentTypeDefinition, UpdateTypeEditorContext context)

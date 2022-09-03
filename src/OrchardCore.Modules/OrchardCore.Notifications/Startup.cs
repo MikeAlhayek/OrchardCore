@@ -56,11 +56,6 @@ public class NotificationTemplatesStartup : StartupBase
         services.AddContentPart<NotificationTemplatePart>()
             .UseDisplayDriver<NotificationTemplatePartDisplayDriver>();
 
-        services.AddScoped<IContentTypeDefinitionDisplayDriver, ContentNotificationSettingsDisplayDriver>();
-
-
-        services.AddScoped<IContentHandler, DisptachTemplateForContents>();
-
         services.AddScoped<IDataMigration, NotificationTemplatesMigrations>();
         services.AddSingleton<IIndexProvider, NotificationTemplateIndexProvider>();
         services.AddScoped<INotificationTemplateDispatcher, DefaultTemplateDispatcher>();
@@ -76,5 +71,17 @@ public class NewUserNotificationTemplatesStartup : StartupBase
     {
         services.AddScoped<INotificationTemplateProvider, NewUserCreatedNotificationTemplateProvider>();
         services.AddScoped<IUserEventHandler, DispatchTemplateWhenUserCreated>();
+    }
+}
+
+[Feature("OrchardCore.Notifications.Templates")]
+[RequireFeatures("OrchardCore.ContentTypes")]
+public class ContentNotificationTemplatesStartup : StartupBase
+{
+    public override void ConfigureServices(IServiceCollection services)
+    {
+        services.AddScoped<IContentTypeDefinitionDisplayDriver, ContentNotificationSettingsDisplayDriver>();
+        services.AddScoped<IContentHandler, DisptachTemplateForContents>();
+        services.AddScoped<INotificationTemplateProvider, ContentsNotificationTemplateProvider>();
     }
 }

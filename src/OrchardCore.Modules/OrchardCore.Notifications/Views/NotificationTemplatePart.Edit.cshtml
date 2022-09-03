@@ -9,28 +9,33 @@
         <option value="">@T["Select an event to dispatch template"]</option>
         @foreach (var option in Model.Options)
         {
-            <option value="@option.Name" data-arguments="@JsonConvert.SerializeObject(option.Arguments ?? Enumerable.Empty<string>())">@option.Description</option>
+            <option value="@option.Id" data-description="@option.Description" data-arguments="@JsonConvert.SerializeObject(option.Arguments ?? Enumerable.Empty<string>())">@option.Title</option>
         }
     </select>
+    <span class="hint" id="TemplateDescription"></span>
 
-    <div class="hint mt-1 d-none" id="argumentContainer">
-        <span>@T["The following templates can be used to create the message"] </span>
-        <span id="argumentContainerBody"></span>
+    <div class="hint mt-1 d-none" id="ArgumentContainer">
+        <span>@T["The following templates can be injected in the notification subject and body"] </span>
+        <span id="ArgumentContainerBody"></span>
     </div>
 </div>
 
 <script at="Foot">
     document.addEventListener('DOMContentLoaded', function() {
-        let argumentContainer = document.getElementById('argumentContainer');
-        let argumentContainerBody = document.getElementById('argumentContainerBody');
+        let argumentContainer = document.getElementById('ArgumentContainer');
+        let argumentContainerBody = document.getElementById('ArgumentContainerBody');
         let menu = document.getElementById('@Html.IdFor(x => x.TemaplateName)');
         if (argumentContainer == null || menu == null) {
             return;
         }
+        let templateDescription = document.getElementById('TemplateDescription');
         menu.addEventListener('change', function(event) {
             (argumentContainerBody || argumentContainer).innerHTML = '';
+            templateDescription.innerText = '';
             if (event.target.value) {
-                var arguments = JSON.parse(event.target.options[event.target.selectedIndex].getAttribute('data-arguments') || '[]');
+                var selectedOptions = event.target.options[event.target.selectedIndex];
+                var arguments = JSON.parse(selectedOptions.getAttribute('data-arguments') || '[]');
+                templateDescription.innerText = selectedOptions.getAttribute('data-description');
                 for (let i = 0; i < arguments.length; i++) {
                     (argumentContainerBody || argumentContainer).innerHTML += '<code class="badge bg-secondary me-1">{{ ' + arguments[i] + ' }}</code>';
                 }

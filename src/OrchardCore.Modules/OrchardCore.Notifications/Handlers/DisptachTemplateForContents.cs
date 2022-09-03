@@ -181,22 +181,22 @@ public class DisptachTemplateForContents : IContentHandler
     {
         var definition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-        var notificationSettings = definition.GetSettings<ContentNotificationSettings>();
-
-        if (!notificationSettings.SendNotification)
+        if (definition == null)
         {
             return;
         }
 
-        if (String.Equals(notificationSettings?.EventName, eventName, StringComparison.OrdinalIgnoreCase))
-        {
-            var templateIds = notificationSettings.NotificationTemplateContentItemIds ?? Array.Empty<string>();
+        var settings = definition.GetSettings<ContentNotificationSettings>();
 
-            await DispatchTemplatesAsync(templateIds, contentItem);
+        if (settings.SendNotification && String.Equals(settings?.EventName, eventName, StringComparison.OrdinalIgnoreCase))
+        {
+            var templateIds = settings.NotificationTemplateContentItemIds ?? Array.Empty<string>();
+
+            await DispatchTemplatesAsync(contentItem, templateIds);
         }
     }
 
-    private async Task DispatchTemplatesAsync(string[] templateIds, ContentItem contentItem)
+    private async Task DispatchTemplatesAsync(ContentItem contentItem, string[] templateIds)
     {
         if (templateIds == null || templateIds.Length == 0)
         {

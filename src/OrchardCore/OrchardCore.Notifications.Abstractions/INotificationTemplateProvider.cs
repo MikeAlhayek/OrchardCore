@@ -2,7 +2,9 @@ namespace OrchardCore.Notifications;
 
 public interface INotificationTemplateProvider
 {
-    string Name { get; }
+    string Id { get; }
+
+    string Title { get; }
 
     string Description { get; }
 

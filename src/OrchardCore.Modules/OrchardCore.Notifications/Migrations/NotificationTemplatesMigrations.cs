@@ -25,7 +25,7 @@ public class NotificationTemplatesMigrations : DataMigration
         _contentDefinitionManager.AlterPartDefinition(NotificationTemplateConstants.NotificationMessageTemplatePart, part => part
             .WithField("Subject", field => field
                 .OfType(nameof(TextField))
-                .WithDisplayName("Email's Subject")
+                .WithDisplayName("Notification Subject")
                 .WithPosition("1")
                 .WithSettings(new TextFieldSettings()
                 {
@@ -34,7 +34,7 @@ public class NotificationTemplatesMigrations : DataMigration
             )
             .WithField("Body", field => field
                 .OfType(nameof(MarkdownField))
-                .WithDisplayName("Email's Body")
+                .WithDisplayName("Notification Body")
                 .WithPosition("2")
                 .WithEditor("TextArea")
                 .WithSettings(new MarkdownFieldSettings()
@@ -87,18 +87,18 @@ public class NotificationTemplatesMigrations : DataMigration
         );
 
         _contentDefinitionManager.AlterTypeDefinition(NotificationTemplateConstants.NotificationTemplateType, type => type
-           .DisplayedAs("Notification Template")
            .Creatable()
            .Listable()
+           .DisplayedAs("Notification Template")
            .WithPart(nameof(TitlePart), part => part
                .WithSettings(new TitlePartSettings()
                {
                    Options = TitlePartOptions.EditableRequired,
                })
            )
-           .WithPart(NotificationTemplateConstants.NotificationTemplatePart, field => field.WithPosition("1"))
-           .WithPart(NotificationTemplateConstants.NotificationMessageTemplatePart, field => field.WithPosition("2"))
-           .WithPart(NotificationTemplateConstants.NotificationTemplateDeliveryPart, field => field.WithPosition("3"))
+           .WithPart(NotificationTemplateConstants.NotificationTemplatePart, part => part.WithPosition("1"))
+           .WithPart(NotificationTemplateConstants.NotificationMessageTemplatePart, part => part.WithPosition("2"))
+           .WithPart(NotificationTemplateConstants.NotificationTemplateDeliveryPart, part => part.WithPosition("3"))
        );
 
         SchemaBuilder.CreateMapIndexTable<NotificationTemplateIndex>(table => table

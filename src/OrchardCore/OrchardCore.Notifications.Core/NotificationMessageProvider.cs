@@ -24,22 +24,21 @@ public class NotificationMessageProvider : INotificationMessageProvider
 {
     private readonly YesSql.ISession _session;
     private readonly ILiquidTemplateManager _liquidTemplateManager;
-    private readonly IShortcodeService _shortcodeService;
     private readonly HtmlEncoder _htmlEncoder;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IServiceProvider _serviceProvider;
+
+    private IShortcodeService _shortcodeService;
     private UserManager<IUser> _userManager;
 
     public NotificationMessageProvider(YesSql.ISession session,
         ILiquidTemplateManager liquidTemplateManager,
-        IShortcodeService shortcodeService,
         HtmlEncoder htmlEncoder,
         IHttpContextAccessor httpContextAccessor,
         IServiceProvider serviceProvider)
     {
         _session = session;
         _liquidTemplateManager = liquidTemplateManager;
-        _shortcodeService = shortcodeService;
         _htmlEncoder = htmlEncoder;
         _httpContextAccessor = httpContextAccessor;
         _serviceProvider = serviceProvider;
@@ -122,15 +121,22 @@ public class NotificationMessageProvider : INotificationMessageProvider
 
         return messages;
     }
+
     private async Task<string> GetTextBodyAsync(Dictionary<string, FluidValue> arguments, ContentItem templateItem, string message)
     {
         var body = await _liquidTemplateManager.RenderStringAsync(message, _htmlEncoder, null, arguments);
 
-        body = await _shortcodeService.ProcessAsync(body,
-              new Context
-              {
-                  ["ContentItem"] = templateItem,
-              });
+        // notifications do not requires Shortcodes, but if the tenant support Shortcode, we'll apply them as well
+        _shortcodeService ??= _serviceProvider.GetService<IShortcodeService>();
+
+        if (_shortcodeService != null)
+        {
+            return await _shortcodeService.ProcessAsync(body,
+                  new Context
+                  {
+                      ["ContentItem"] = templateItem,
+                  });
+        }
 
         return body;
     }

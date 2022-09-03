@@ -6,9 +6,9 @@ public class NewUserCreatedNotificationTemplateProvider : INotificationTemplateP
 {
     public const string Key = "new-user-created";
 
-    public const string Title = "New user notification";
+    public string Id => Key;
 
-    public string Name => Key;
+    public string Title => "New user notification";
 
     public string Description => "Send welcome notifications when user is created.";
 

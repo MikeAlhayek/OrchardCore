@@ -37,7 +37,8 @@ public class NotificationTemplatePartDisplayDriver : ContentPartDisplayDriver<No
             {
                 options.Add(new TemplateOption
                 {
-                    Name = provider.Name,
+                    Id = provider.Id,
+                    Title = provider.Title,
                     Description = provider.Description,
                     Arguments = provider.GetArguments()
                 });
@@ -52,14 +53,14 @@ public class NotificationTemplatePartDisplayDriver : ContentPartDisplayDriver<No
 
         if (await context.Updater.TryUpdateModelAsync(model, Prefix))
         {
-            var template = _notificationTemplateProviders.FirstOrDefault(x => String.Equals(x.Name, model.TemaplateName));
+            var template = _notificationTemplateProviders.FirstOrDefault(x => String.Equals(x.Id, model.TemaplateName));
 
             if (template is null)
             {
                 updater.ModelState.AddModelError(Prefix, nameof(NotificationTemplatePartViewModel.TemaplateName), S["Invalid template."]);
             }
 
-            part.TemplateName = template?.Name;
+            part.TemplateName = template?.Id;
         }
 
         return Edit(part, context);
