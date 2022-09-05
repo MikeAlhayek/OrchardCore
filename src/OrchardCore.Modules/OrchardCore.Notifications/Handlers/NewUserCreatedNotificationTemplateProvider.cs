@@ -12,6 +12,8 @@ public class NewUserCreatedNotificationTemplateProvider : INotificationTemplateP
 
     public string Description => "Send welcome notifications when user is created.";
 
+    public NotificationTemplateMetadata Metadata => new();
+
     public IEnumerable<string> GetArguments() => new List<string>()
     {
         "username",

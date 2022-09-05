@@ -40,6 +40,7 @@ public class NotificationTemplatePartDisplayDriver : ContentPartDisplayDriver<No
                     Id = provider.Id,
                     Title = provider.Title,
                     Description = provider.Description,
+                    IsContentItemBased = provider.Metadata?.IsContentItemBased ?? false,
                     Arguments = provider.GetArguments()
                 });
             }

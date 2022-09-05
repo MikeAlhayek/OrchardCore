@@ -5,7 +5,6 @@ using OrchardCore.ContentManagement.Metadata.Settings;
 using OrchardCore.Data.Migration;
 using OrchardCore.Markdown.Fields;
 using OrchardCore.Markdown.Settings;
-using OrchardCore.Notifications.Models;
 using OrchardCore.Title.Models;
 using YesSql.Sql;
 
@@ -44,44 +43,20 @@ public class NotificationTemplatesMigrations : DataMigration
             )
         );
 
-        _contentDefinitionManager.AlterPartDefinition(NotificationTemplateConstants.NotificationTemplateDeliveryPart, part => part
+        _contentDefinitionManager.AlterPartDefinition(NotificationTemplateConstants.NotificationReceivingUsersPart, part => part
            .Attachable()
-           .WithDisplayName("Notification Template Delivery Part")
+           .WithDisplayName("Notification Receiving Users")
            .WithDescription("Provides options for who to send an email notifcation too.")
-           .WithField("SendTo", field => field
-               .OfType(nameof(TextField))
-               .WithDisplayName("Send To")
-               .WithPosition("1")
-               .WithEditor("PredefinedList")
-               .MergeSettings<TextFieldPredefinedListEditorSettings>(settings =>
-               {
-                   settings.Editor = EditorOption.Dropdown;
-                   settings.DefaultValue = NotificationTemplateConstants.CurrentUserValue;
-                   settings.Options = new[]
-                   {
-                       new ListValueOption()
-                       {
-                           Name = "Current User",
-                           Value = NotificationTemplateConstants.CurrentUserValue,
-                       },
-                       new ListValueOption()
-                       {
-                           Name = "Specific User(s)",
-                           Value = NotificationTemplateConstants.SpecificUsersValue,
-                       },
-                   };
-               })
-            )
-           .WithField(nameof(NotificationTemplateDeliveryPart.Users), part => part
+           .WithField("Users", part => part
                 .OfType(nameof(UserPickerField))
-                .WithDisplayName("Users who can recieve an email notification.")
-                .WithPosition("2")
+                .WithDisplayName("Users who will recieve the notification.")
+                .WithPosition("1")
                 .MergeSettings<UserPickerFieldSettings>(settings =>
                 {
                     settings.Required = false;
                     settings.DisplayAllUsers = true;
                     settings.Multiple = true;
-                    settings.Hint = "Please select the user(s) who will recieve an email notification.";
+                    settings.Hint = "Please select the user(s) who will recieve the notification.";
                 })
             )
         );
@@ -98,7 +73,8 @@ public class NotificationTemplatesMigrations : DataMigration
            )
            .WithPart(NotificationTemplateConstants.NotificationTemplatePart, part => part.WithPosition("1"))
            .WithPart(NotificationTemplateConstants.NotificationMessageTemplatePart, part => part.WithPosition("2"))
-           .WithPart(NotificationTemplateConstants.NotificationTemplateDeliveryPart, part => part.WithPosition("3"))
+           .WithPart(NotificationTemplateConstants.NotificationReceiverPart, part => part.WithPosition("3"))
+           .WithPart(NotificationTemplateConstants.NotificationReceivingUsersPart, part => part.WithPosition("4"))
        );
 
         SchemaBuilder.CreateMapIndexTable<NotificationTemplateIndex>(table => table

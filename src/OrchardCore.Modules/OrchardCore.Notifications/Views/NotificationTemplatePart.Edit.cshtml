@@ -9,7 +9,7 @@
         <option value="">@T["Select an event to dispatch template"]</option>
         @foreach (var option in Model.Options)
         {
-            <option value="@option.Id" data-description="@option.Description" data-arguments="@JsonConvert.SerializeObject(option.Arguments ?? Enumerable.Empty<string>())">@option.Title</option>
+            <option value="@option.Id" data-description="@option.Description" data-arguments="@JsonConvert.SerializeObject(option.Arguments ?? Enumerable.Empty<string>())" data-is-based-on-content-item="@option.IsContentItemBased.ToString().ToLowerInvariant()">@option.Title</option>
         }
     </select>
     <span class="hint" id="TemplateDescription"></span>
@@ -23,17 +23,23 @@
 <script at="Foot">
     document.addEventListener('DOMContentLoaded', function() {
         let argumentContainer = document.getElementById('ArgumentContainer');
-        let argumentContainerBody = document.getElementById('ArgumentContainerBody');
         let menu = document.getElementById('@Html.IdFor(x => x.TemaplateName)');
         if (argumentContainer == null || menu == null) {
             return;
         }
+        let argumentContainerBody = document.getElementById('ArgumentContainerBody');
+        let receivers = document.getElementsByClassName('receivers-item');
+
         let templateDescription = document.getElementById('TemplateDescription');
         menu.addEventListener('change', function(event) {
             (argumentContainerBody || argumentContainer).innerHTML = '';
             templateDescription.innerText = '';
+            let isContentItemBased = false;
             if (event.target.value) {
                 var selectedOptions = event.target.options[event.target.selectedIndex];
+
+                isContentItemBased = selectedOptions.getAttribute('data-is-based-on-content-item') == 'true';
+
                 var arguments = JSON.parse(selectedOptions.getAttribute('data-arguments') || '[]');
                 templateDescription.innerText = selectedOptions.getAttribute('data-description');
                 for (let i = 0; i < arguments.length; i++) {
@@ -42,6 +48,17 @@
                 argumentContainer.classList.remove('d-none');
             } else {
                 argumentContainer.classList.add('d-none');
+            }
+
+            for (let i = 0; i < receivers.length; i++) {
+                var wrapper = receivers[i].closest('.receivers-item-wrapper');
+                if (wrapper != null && wrapper.classList.contains('content-based-receiver-item')) {
+                    if (isContentItemBased) {
+                        wrapper.classList.remove('d-none');
+                    } else {
+                        wrapper.classList.add('d-none');
+                    }
+                }
             }
         });
     });

@@ -51,10 +51,13 @@ public class NotificationTemplatesStartup : StartupBase
     public override void ConfigureServices(IServiceCollection services)
     {
         services.AddContentPart<NotificationMessageTemplatePart>();
-        services.AddContentPart<NotificationTemplateDeliveryPart>();
+        services.AddContentPart<NotificationReceiverPart>();
 
         services.AddContentPart<NotificationTemplatePart>()
             .UseDisplayDriver<NotificationTemplatePartDisplayDriver>();
+
+        services.AddContentPart<NotificationReceiverPart>()
+            .UseDisplayDriver<NotificationReceiverPartDisplayDriver>();
 
         services.AddScoped<IDataMigration, NotificationTemplatesMigrations>();
         services.AddSingleton<IIndexProvider, NotificationTemplateIndexProvider>();

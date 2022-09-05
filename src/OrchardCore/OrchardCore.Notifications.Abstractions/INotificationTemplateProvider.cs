@@ -8,5 +8,7 @@ public interface INotificationTemplateProvider
 
     string Description { get; }
 
+    NotificationTemplateMetadata Metadata { get; }
+
     IEnumerable<string> GetArguments();
 }

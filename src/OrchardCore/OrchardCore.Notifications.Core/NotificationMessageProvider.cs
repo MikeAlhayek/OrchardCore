@@ -76,13 +76,27 @@ public class NotificationMessageProvider : INotificationMessageProvider
 
         foreach (var templateItem in templates)
         {
-            var deliveryTo = templateItem.As<NotificationTemplateDeliveryPart>();
+            var deliveryTo = templateItem.As<NotificationReceiverPart>();
 
-            if (NotificationTemplateConstants.SpecificUsersValue.Equals(deliveryTo.SendTo?.Text))
+            if (deliveryTo == null || deliveryTo.Receivers == null)
             {
-                userIds.AddRange(deliveryTo.Users.UserIds);
+                continue;
+            }
+
+            if (deliveryTo.Receivers.Contains(NotificationTemplateConstants.SpecificUsersValue, StringComparer.OrdinalIgnoreCase))
+            {
+                var usersPart = templateItem.As<NotificationReceivingUsersPart>();
+
+                if (usersPart == null || usersPart.Users == null)
+                {
+                    continue;
+                }
+
+                userIds.AddRange(usersPart.Users.UserIds);
             }
         }
+
+        //usersPart
 
         var users = await _session.Query<User, UserIndex>(x => x.UserId.IsIn(userIds)).ListAsync();
 
@@ -105,15 +119,27 @@ public class NotificationMessageProvider : INotificationMessageProvider
                 TextBody = await GetTextBodyAsync(arguments, template, templatePart.Body.Markdown),
             };
 
-            var deliveryToPart = template.As<NotificationTemplateDeliveryPart>();
+            var deliveryTo = template.As<NotificationReceiverPart>();
 
-            if (NotificationTemplateConstants.CurrentUserValue.Equals(deliveryToPart.SendTo?.Text) && user != null)
+            if (deliveryTo == null || deliveryTo.Receivers == null)
+            {
+                continue;
+            }
+
+            if (deliveryTo.Receivers.Contains(NotificationTemplateConstants.SpecificUsersValue, StringComparer.OrdinalIgnoreCase))
             {
                 body.Users.Add(user);
             }
-            else if (NotificationTemplateConstants.SpecificUsersValue.Equals(deliveryToPart.SendTo?.Text))
+            else if (deliveryTo.Receivers.Contains(NotificationTemplateConstants.SpecificUsersValue, StringComparer.OrdinalIgnoreCase))
             {
-                body.Users.AddRange(users.Where(x => deliveryToPart.Users.UserIds.Contains(x.UserId)));
+                var usersPart = template.As<NotificationReceivingUsersPart>();
+
+                if (usersPart == null || usersPart.Users == null)
+                {
+                    continue;
+                }
+
+                body.Users.AddRange(users.Where(x => usersPart.Users.UserIds.Contains(x.UserId)));
             }
 
             messages.Add(body);

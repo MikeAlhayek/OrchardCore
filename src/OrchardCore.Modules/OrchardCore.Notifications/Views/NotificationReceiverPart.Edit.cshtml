@@ -1,0 +1,37 @@
+@model NotificationReceiverPartViewModel
+@using OrchardCore.Mvc.Utilities;
+
+@{
+    var htmlId = Html.IdFor(m => m.Receivers);
+    var htmlName = Html.NameFor(m => m.Receivers);
+}
+<div class="mb-3">
+    <label for="@htmlId">@T["Receivers"]</label>
+    <div id="@htmlId">
+        @foreach (var option in Model.Options)
+        {
+            var optionId = (htmlId + "-" + option.Value).HtmlClassify();
+            <div class="form-check receivers-item-wrapper@(option.IsContentBased ? " content-based-receiver-item d-none" : String.Empty)">
+                <input class="form-check-input receivers-item" type="checkbox" value="@option.Value" id="@optionId" name="@htmlName">
+                <label class="form-check-label" for="@optionId">
+                    @option.Text
+                </label>
+            </div>
+        }
+    </div>
+</div>
+
+<script at="Foot">
+    document.addEventListener('DOMContentLoaded', function() {
+        var specificUsers = document.getElementById('notification-receiver-part-receivers-specific-users');
+        var userWrapper = document.querySelector('.Users-wrapper');
+        specificUsers.addEventListener('change', function(e) {
+            if (e.target.checked) {
+                userWrapper.classList.remove('d-none');
+            } else {
+                userWrapper.classList.add('d-none');
+            }
+        });
+        specificUsers.dispatchEvent(new Event('change'));
+    });
+</script>

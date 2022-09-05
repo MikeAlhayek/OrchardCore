@@ -12,6 +12,11 @@ public class ContentsNotificationTemplateProvider : INotificationTemplateProvide
 
     public string Description => "Send notifications based on content event using content type settings.";
 
+    public NotificationTemplateMetadata Metadata => new()
+    {
+        IsContentItemBased = true,
+    };
+
     public IEnumerable<string> GetArguments() => new List<string>()
     {
         "DisplayText",
