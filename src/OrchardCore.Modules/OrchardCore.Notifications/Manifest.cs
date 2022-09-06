@@ -30,7 +30,7 @@ using OrchardCore.Modules.Manifest;
 [assembly: Feature(
     Id = "OrchardCore.Notifications.Templates",
     Name = "Notification Templates",
-    Description = "Provides a way to create notification based templates.",
+    Description = "Provides a way to create notification templates.",
     Dependencies = new[] {
         "OrchardCore.ContentFields",
         "OrchardCore.Notifications",
