@@ -44,7 +44,7 @@ public class NotificationMessageProvider : INotificationMessageProvider
         _serviceProvider = serviceProvider;
     }
 
-    public async Task<IEnumerable<NotificationMessageContext>> GetAsync(string template, Dictionary<string, string> messageArguments)
+    public async Task<IEnumerable<NotificationMessageContext>> GetAsync(string template, Dictionary<string, string> messageArguments, object resource)
     {
         if (String.IsNullOrWhiteSpace(template))
         {
@@ -53,10 +53,10 @@ public class NotificationMessageProvider : INotificationMessageProvider
 
         var templateItems = await _session.Query<ContentItem, NotificationTemplateIndex>(x => x.TemplateName == template).ListAsync();
 
-        return await GetAsync(templateItems, messageArguments);
+        return await GetAsync(templateItems, messageArguments, resource);
     }
 
-    public async Task<IEnumerable<NotificationMessageContext>> GetAsync(IEnumerable<ContentItem> templates, Dictionary<string, string> messageArguments)
+    public async Task<IEnumerable<NotificationMessageContext>> GetAsync(IEnumerable<ContentItem> templates, Dictionary<string, string> messageArguments, object resource)
     {
         if (templates == null)
         {
@@ -74,18 +74,25 @@ public class NotificationMessageProvider : INotificationMessageProvider
 
         var userIds = new List<string>();
 
-        foreach (var templateItem in templates)
+        foreach (var template in templates)
         {
-            var deliveryTo = templateItem.As<NotificationReceiverPart>();
+            var deliveryTo = template.As<NotificationReceiverPart>();
 
             if (deliveryTo == null || deliveryTo.Receivers == null)
             {
                 continue;
             }
 
+            if (deliveryTo.Receivers.Contains(NotificationTemplateConstants.ContentItemOwnerValue, StringComparer.OrdinalIgnoreCase)
+                && resource is ContentItem contentItem
+                && !String.IsNullOrEmpty(contentItem.Owner))
+            {
+                userIds.Add(contentItem.Owner);
+            }
+
             if (deliveryTo.Receivers.Contains(NotificationTemplateConstants.SpecificUsersValue, StringComparer.OrdinalIgnoreCase))
             {
-                var usersPart = templateItem.As<NotificationReceivingUsersPart>();
+                var usersPart = template.As<NotificationReceivingUsersPart>();
 
                 if (usersPart == null || usersPart.Users == null)
                 {
@@ -95,8 +102,6 @@ public class NotificationMessageProvider : INotificationMessageProvider
                 userIds.AddRange(usersPart.Users.UserIds);
             }
         }
-
-        //usersPart
 
         var users = await _session.Query<User, UserIndex>(x => x.UserId.IsIn(userIds)).ListAsync();
 
@@ -115,8 +120,8 @@ public class NotificationMessageProvider : INotificationMessageProvider
 
             var body = new NotificationMessageContext()
             {
-                Subject = await GetTextBodyAsync(arguments, template, templatePart.Subject.Text),
-                TextBody = await GetTextBodyAsync(arguments, template, templatePart.Body.Markdown),
+                Subject = await GetTextBodyAsync(arguments, template, templatePart.Subject?.Text),
+                TextBody = await GetTextBodyAsync(arguments, template, templatePart.Body?.Markdown),
             };
 
             var deliveryTo = template.As<NotificationReceiverPart>();
@@ -126,7 +131,7 @@ public class NotificationMessageProvider : INotificationMessageProvider
                 continue;
             }
 
-            if (deliveryTo.Receivers.Contains(NotificationTemplateConstants.SpecificUsersValue, StringComparer.OrdinalIgnoreCase))
+            if (deliveryTo.Receivers.Contains(NotificationTemplateConstants.CurrentUserValue, StringComparer.OrdinalIgnoreCase))
             {
                 body.Users.Add(user);
             }

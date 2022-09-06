@@ -9,7 +9,7 @@
         <option value="">@T["Select an event to dispatch template"]</option>
         @foreach (var option in Model.Options)
         {
-            <option value="@option.Id" data-description="@option.Description" data-arguments="@JsonConvert.SerializeObject(option.Arguments ?? Enumerable.Empty<string>())" data-is-based-on-content-item="@option.IsContentItemBased.ToString().ToLowerInvariant()">@option.Title</option>
+            <option value="@option.Id" data-description="@option.Description" data-arguments="@JsonConvert.SerializeObject(option.Arguments ?? Enumerable.Empty<string>())" data-is-based-on-content-item="@option.IsContentItemBased.ToString().ToLowerInvariant()" data-is-predefined-notifier="@option.IsPredefinedNotifier.ToString().ToLowerInvariant()">@option.Title</option>
         }
     </select>
     <span class="hint" id="TemplateDescription"></span>
@@ -29,14 +29,21 @@
         }
         let argumentContainerBody = document.getElementById('ArgumentContainerBody');
         let receivers = document.getElementsByClassName('receivers-item');
-
         let templateDescription = document.getElementById('TemplateDescription');
+        let notificationReceivers = document.getElementById('NotificationReceivers');
+
         menu.addEventListener('change', function(event) {
             (argumentContainerBody || argumentContainer).innerHTML = '';
             templateDescription.innerText = '';
             let isContentItemBased = false;
             if (event.target.value) {
                 var selectedOptions = event.target.options[event.target.selectedIndex];
+
+                if (selectedOptions.getAttribute('data-is-predefined-notifier') == 'true') {
+                    notificationReceivers.classList.add('d-none');
+                } else {
+                    notificationReceivers.classList.remove('d-none');
+                }
 
                 isContentItemBased = selectedOptions.getAttribute('data-is-based-on-content-item') == 'true';
 
@@ -61,5 +68,7 @@
                 }
             }
         });
+
+        menu.dispatchEvent(new Event('change'));
     });
 </script>

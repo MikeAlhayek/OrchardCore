@@ -215,9 +215,9 @@ public class DisptachTemplateForContents : IContentHandler
             { "ModifiedUtc", contentItem.ModifiedUtc?.ToString() },
             { "PublishedUtc", contentItem.PublishedUtc?.ToString() },
             { "CreatedUtc", contentItem.CreatedUtc?.ToString() },
-            { "Owner", contentItem.Owner },
-            { "Author", contentItem.Author },
-        });
+            { "OwnerId", contentItem.Owner },
+            { "AuthorUsername", contentItem.Author },
+        }, contentItem);
 
         foreach (var message in messages)
         {

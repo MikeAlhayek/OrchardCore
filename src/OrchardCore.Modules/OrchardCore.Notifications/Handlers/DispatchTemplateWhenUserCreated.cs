@@ -40,7 +40,7 @@ public class DispatchTemplateWhenUserCreated : UserEventHandlerBase
             { "password", password },
             { "username", user.UserName },
             { "email", user.Email },
-        });
+        }, user);
 
         foreach (var message in messages)
         {

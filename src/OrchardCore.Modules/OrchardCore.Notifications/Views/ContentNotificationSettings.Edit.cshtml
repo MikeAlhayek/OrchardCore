@@ -8,14 +8,14 @@
     <span class="hint dashed">@T["Check to send events based notifications."]</span>
 </div>
 
-<div class="mb-3 send-notifications@(Model.SendNotification ? " show" : "")">
+<div class="mb-3 collapse send-notifications@(Model.SendNotification ? " show" : "")">
     <label asp-for="EventName">@T["Event name"]</label>
     <select asp-for="EventName" class="form-select" asp-items="Model.EventNames">
         <option value="">@T["Select an event"]</option>
     </select>
 </div>
 
-<div class="mb-3 send-notifications@(Model.SendNotification ? " show" : "")">
+<div class="mb-3 collapse send-notifications@(Model.SendNotification ? " show" : "")">
     <label asp-for="NotificationTemplateContentItemIds">@T["Notification Templates"]</label>
     <select asp-for="NotificationTemplateContentItemIds" class="form-select" asp-items="Model.NotificationTemplates" style="min-height: 100px;"></select>
     <span class="hint dashed">@T["More notification templates can be added using the contents."]</span>

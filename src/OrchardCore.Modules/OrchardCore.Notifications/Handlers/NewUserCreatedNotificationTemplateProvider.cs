@@ -12,7 +12,10 @@ public class NewUserCreatedNotificationTemplateProvider : INotificationTemplateP
 
     public string Description => "Send welcome notifications when user is created.";
 
-    public NotificationTemplateMetadata Metadata => new();
+    public NotificationTemplateMetadata Metadata => new()
+    {
+        IsPredefinedNotifier = true,
+    };
 
     public IEnumerable<string> GetArguments() => new List<string>()
     {

@@ -25,7 +25,7 @@ public class ContentsNotificationTemplateProvider : INotificationTemplateProvide
         "ModifiedUtc",
         "PublishedUtc",
         "CreatedUtc",
-        "Owner",
-        "Author",
+        "OwnerId",
+        "AuthorUsername",
     };
 }

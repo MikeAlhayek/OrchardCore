@@ -5,14 +5,14 @@
     var htmlId = Html.IdFor(m => m.Receivers);
     var htmlName = Html.NameFor(m => m.Receivers);
 }
-<div class="mb-3">
+<div class="mb-3" id="NotificationReceivers">
     <label for="@htmlId">@T["Receivers"]</label>
     <div id="@htmlId">
         @foreach (var option in Model.Options)
         {
             var optionId = (htmlId + "-" + option.Value).HtmlClassify();
             <div class="form-check receivers-item-wrapper@(option.IsContentBased ? " content-based-receiver-item d-none" : String.Empty)">
-                <input class="form-check-input receivers-item" type="checkbox" value="@option.Value" id="@optionId" name="@htmlName">
+                <input class="form-check-input receivers-item" type="checkbox" value="@option.Value" id="@optionId" name="@htmlName" @(Model.Receivers.Contains(option.Value) ? "checked" : String.Empty)>
                 <label class="form-check-label" for="@optionId">
                     @option.Text
                 </label>
@@ -23,8 +23,8 @@
 
 <script at="Foot">
     document.addEventListener('DOMContentLoaded', function() {
-        var specificUsers = document.getElementById('notification-receiver-part-receivers-specific-users');
-        var userWrapper = document.querySelector('.Users-wrapper');
+        const specificUsers = document.getElementById('notification-receiver-part-receivers-specific-users');
+        const userWrapper = document.querySelector('.Users-wrapper');
         specificUsers.addEventListener('change', function(e) {
             if (e.target.checked) {
                 userWrapper.classList.remove('d-none');

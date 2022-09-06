@@ -77,8 +77,8 @@ public class NewUserNotificationTemplatesStartup : StartupBase
     }
 }
 
-[Feature("OrchardCore.Notifications.Templates")]
-[RequireFeatures("OrchardCore.ContentTypes")]
+[Feature("OrchardCore.Notifications.ContentTemplates")]
+[RequireFeatures("OrchardCore.ContentTypes", "OrchardCore.Notifications.Templates")]
 public class ContentNotificationTemplatesStartup : StartupBase
 {
     public override void ConfigureServices(IServiceCollection services)

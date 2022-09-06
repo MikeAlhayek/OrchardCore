@@ -22,14 +22,14 @@ public class DefaultTemplateDispatcher : INotificationTemplateDispatcher
         _logger = logger;
     }
 
-    public async Task SendAsync(string template, IUser user, Dictionary<string, string> arguments)
+    public async Task SendAsync(string template, IUser user, Dictionary<string, string> arguments, object resource)
     {
         if (String.IsNullOrWhiteSpace(template))
         {
             throw new ArgumentException($"{nameof(template)} cannot be empty.");
         }
 
-        var messages = await _notificationMessageProvider.GetAsync(template, arguments);
+        var messages = await _notificationMessageProvider.GetAsync(template, arguments, resource);
 
         foreach (var message in messages)
         {

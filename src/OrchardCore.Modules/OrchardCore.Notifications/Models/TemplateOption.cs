@@ -13,5 +13,7 @@ public class TemplateOption
 
     public bool IsContentItemBased { get; set; }
 
+    public bool? IsPredefinedNotifier { get; set; }
+
     public IEnumerable<string> Arguments { get; set; }
 }

@@ -42,7 +42,7 @@ public class NotificationReceiverPartDisplayDriver : ContentPartDisplayDriver<No
             {
                 var usersModel = new EditUserPickerFieldViewModel();
 
-                await updater.TryUpdateModelAsync(usersModel, NotificationTemplateConstants.NotificationReceivingUsersPart);
+                await updater.TryUpdateModelAsync(usersModel, NotificationTemplateConstants.NotificationReceivingUsersPart + ".Users");
 
                 if (usersModel.UserIds == null || usersModel.UserIds.Length == 0)
                 {

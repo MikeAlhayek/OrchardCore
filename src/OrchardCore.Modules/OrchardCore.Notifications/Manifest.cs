@@ -39,3 +39,14 @@ using OrchardCore.Modules.Manifest;
     },
     Category = "Notifications"
 )]
+
+[assembly: Feature(
+    Id = "OrchardCore.Notifications.ContentTemplates",
+    Name = "Notification Templates for Contents",
+    Description = "Provides a way to create notification using content events.",
+    Dependencies = new[] {
+        "OrchardCore.ContentTypes",
+        "OrchardCore.Notifications.Templates"
+    },
+    Category = "Notifications"
+)]

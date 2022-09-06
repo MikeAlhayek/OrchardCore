@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using OrchardCore.Notifications.Models;
 
@@ -7,7 +6,6 @@ namespace OrchardCore.Notifications.ViewModels;
 
 public class NotificationReceiverPartViewModel
 {
-    [Required]
     public string[] Receivers { get; set; }
 
     [BindNever]
