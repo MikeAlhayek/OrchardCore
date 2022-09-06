@@ -22,7 +22,6 @@ using OrchardCore.Modules.Manifest;
     Dependencies = new[]
     {
         "OrchardCore.Notifications",
-        "OrchardCore.Contents",
         "OrchardCore.Email"
     }
 )]
@@ -34,6 +33,7 @@ using OrchardCore.Modules.Manifest;
     Dependencies = new[] {
         "OrchardCore.ContentFields",
         "OrchardCore.Notifications",
+        "OrchardCore.Contents",
         "OrchardCore.Markdown",
         "OrchardCore.Title"
     },

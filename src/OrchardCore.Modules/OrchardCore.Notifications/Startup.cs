@@ -36,7 +36,7 @@ public class Startup : StartupBase
     }
 }
 
-[Feature("OrchardCore.Notifications.Email")]
+[Feature("OrchardCore.Notifications.Emails")]
 public class EmailNotificationsStartup : StartupBase
 {
     public override void ConfigureServices(IServiceCollection services)
