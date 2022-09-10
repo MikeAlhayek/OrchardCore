@@ -24,6 +24,7 @@
             @{
                 RenderTitleSegments(T["Manage {0} Content", Model.ContentType.DisplayName]);
             }
+            <h3 class="card-title mb-3">@T["Manage {0} Content", Model.ContentType.DisplayName]</h3>
             <form asp-action="List" asp-controller="Profile" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentTypeId="@Model.ContentType.Name" method="post" id="items-form" autocomplete="off">
                 @await DisplayAsync(Model.Body)
             </form>

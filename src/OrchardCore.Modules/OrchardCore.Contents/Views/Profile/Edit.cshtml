@@ -23,8 +23,9 @@
         <div class="card-body">
 
             @{
-                RenderTitleSegments(T["Edit {0}", Model.ContentType.DisplayName]);
+                RenderTitleSegments(T["New {0}", Model.ContentType?.DisplayName]);
             }
+            <h3 class="card-title mb-3">@T["Edit {0}", Model.ContentType.DisplayName]</h3>
 
             <form asp-action="Edit" asp-controller="Profile" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentitemid="@Model.ContentItem?.ContentItemId" asp-route-returnUrl="@Context.Request.Query["ReturnUrl"]" method="post" enctype="multipart/form-data" class="no-multisubmit">
                 @Html.ValidationSummary()

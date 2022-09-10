@@ -450,7 +450,7 @@ public class ProfileController : Controller, IUpdateModel
 
             var profileTypeDefinition = _contentDefinitionManager.GetTypeDefinition(profileContentItem.ContentType);
 
-            shape = await GetProfileShapeAync(profileContentItem, profileTypeDefinition, null, await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
+            shape = await GetProfileShapeAync(profileContentItem, profileTypeDefinition, null, await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, _updateModelAccessor.ModelUpdater, "Detail"));
         }
         else
         {
