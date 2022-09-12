@@ -19,6 +19,15 @@ public class ProfileShapes : IShapeTableProvider
 
                    if (shape.ContentItem is ContentItem contentItem)
                    {
+                       var containedProfilePart = contentItem.As<ContainedProfilePart>();
+
+                       if (containedProfilePart != null)
+                       {
+                           displaying.Shape.Metadata.Alternates.Add("Profile_ContentsTitle_SummaryAdmin");
+
+                           return;
+                       }
+
                        contentDefinitionManager ??= displaying.ServiceProvider.GetRequiredService<IContentDefinitionManager>();
 
                        var definition = contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
@@ -32,4 +41,5 @@ public class ProfileShapes : IShapeTableProvider
                    }
                });
     }
+
 }

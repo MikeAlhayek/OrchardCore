@@ -1,15 +1,34 @@
 @model ContentItemViewModel
 @using OrchardCore.ContentManagement
 @using OrchardCore.Contents
+@using OrchardCore.Contents.Models
 @inject IAuthorizationService AuthorizationService
+@{
+    var feature = ViewContext.HttpContext.Features.Get<ContentProfileFeature>();
+    string profileId = Model.ContentItem.ContentItemId;
+    string contentItemId = null;
+    bool canViewProfile = true;
 
-@if (await AuthorizationService.AuthorizeAsync(User, CommonPermissions.EditContent, Model.ContentItem))
-{
-    <a asp-controller="Profile" asp-action="Edit" asp-route-profileId="@Model.ContentItem.ContentItemId">@Model.ContentItem</a>
+    if (feature != null)
+    {
+        var containedProfilePart = Model.ContentItem.As<ContainedProfilePart>();
+
+        if (containedProfilePart != null && containedProfilePart.ProfileContentItemId == feature.ProfileContentItem.ContentItemId)
+        {
+            contentItemId = Model.ContentItem.ContentItemId;
+            profileId = containedProfilePart.ProfileContentItemId;
+            canViewProfile = await AuthorizationService.AuthorizeAsync(User, CommonPermissions.ViewContent, feature.ProfileContentItem);
+        }
+    }
 }
-else if (await AuthorizationService.AuthorizeAsync(User, CommonPermissions.ViewContent, Model.ContentItem))
+
+@if (canViewProfile && await AuthorizationService.AuthorizeAsync(User, CommonPermissions.EditContent, Model.ContentItem))
 {
-    <a asp-controller="Profile" asp-action="Display" asp-route-profileId="@Model.ContentItem.ContentItemId">@Model.ContentItem</a>
+    <a asp-controller="Profile" asp-action="Edit" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@FullRequestPath">@Model.ContentItem</a>
+}
+else if (canViewProfile && await AuthorizationService.AuthorizeAsync(User, CommonPermissions.ViewContent, Model.ContentItem))
+{
+    <a asp-controller="Profile" asp-action="Display" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@FullRequestPath">@Model.ContentItem</a>
 }
 else
 {
