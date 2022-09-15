@@ -15,6 +15,8 @@ namespace OrchardCore.Media.Recipes
     {
         private readonly MediaProfilesManager _mediaProfilesManager;
 
+        public int Order => 0;
+
         public MediaProfileStep(MediaProfilesManager mediaProfilesManager)
         {
             _mediaProfilesManager = mediaProfilesManager;

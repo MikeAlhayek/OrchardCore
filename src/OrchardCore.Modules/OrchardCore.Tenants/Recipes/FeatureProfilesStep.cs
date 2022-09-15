@@ -20,6 +20,8 @@ namespace OrchardCore.Tenants.Recipes
             _featureProfilesManager = featureProfilesManager;
         }
 
+        public int Order => 0;
+
         public async Task ExecuteAsync(RecipeExecutionContext context)
         {
             if (!String.Equals(context.Name, "FeatureProfiles", StringComparison.OrdinalIgnoreCase))

@@ -30,6 +30,8 @@ namespace OrchardCore.Recipes.RecipeSteps
             _logger = logger;
         }
 
+        public int Order => 0;
+
         public async Task ExecuteAsync(RecipeExecutionContext context)
         {
             if (!String.Equals(context.Name, "Command", StringComparison.OrdinalIgnoreCase))

@@ -9,6 +9,7 @@ using OrchardCore.Environment.Extensions.Features;
 using OrchardCore.Environment.Shell;
 using OrchardCore.Security;
 using OrchardCore.Security.Permissions;
+using OrchardCore.Security.Services;
 
 namespace OrchardCore.Roles.Services
 {
@@ -17,15 +18,18 @@ namespace OrchardCore.Roles.Services
         private readonly RoleManager<IRole> _roleManager;
         private readonly IEnumerable<IPermissionProvider> _permissionProviders;
         private readonly ITypeFeatureProvider _typeFeatureProvider;
+        private readonly IRoleService _roleService;
         private readonly ILogger _logger;
 
         public RoleUpdater(
             RoleManager<IRole> roleManager,
             IEnumerable<IPermissionProvider> permissionProviders,
             ITypeFeatureProvider typeFeatureProvider,
+            IRoleService roleService,
             ILogger<RoleUpdater> logger)
         {
             _typeFeatureProvider = typeFeatureProvider;
+            _roleService = roleService;
             _roleManager = roleManager;
             _permissionProviders = permissionProviders;
             _logger = logger;
@@ -77,11 +81,10 @@ namespace OrchardCore.Roles.Services
                     {
                         if (_logger.IsEnabled(LogLevel.Information))
                         {
-                            _logger.LogInformation("Defining new role '{RoleName}' for permission stereotype", stereotype.Name);
+                            _logger.LogInformation("The role '{RoleName}' does not exists.", stereotype.Name);
                         }
 
-                        role = new Role { RoleName = stereotype.Name, RoleDescription = stereotype.Name + " role" };
-                        await _roleManager.CreateAsync(role);
+                        continue;
                     }
 
                     // and merge the stereotypical permissions into that role

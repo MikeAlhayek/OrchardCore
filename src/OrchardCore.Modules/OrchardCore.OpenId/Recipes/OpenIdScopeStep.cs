@@ -19,6 +19,8 @@ namespace OrchardCore.OpenId.Recipes
             _scopeManager = scopeManager;
         }
 
+        public int Order => 0;
+
         public async Task ExecuteAsync(RecipeExecutionContext context)
         {
             if (!string.Equals(context.Name, "OpenIdScope", StringComparison.OrdinalIgnoreCase))

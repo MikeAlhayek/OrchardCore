@@ -26,6 +26,8 @@ namespace OrchardCore.Lucene.Recipes
             _luceneIndexingService = luceneIndexingService;
         }
 
+        public int Order => 0;
+
         public async Task ExecuteAsync(RecipeExecutionContext context)
         {
             if (!String.Equals(context.Name, "lucene-index", StringComparison.OrdinalIgnoreCase))

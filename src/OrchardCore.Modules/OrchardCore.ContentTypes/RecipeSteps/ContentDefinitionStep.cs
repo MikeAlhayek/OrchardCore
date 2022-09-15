@@ -19,6 +19,7 @@ namespace OrchardCore.ContentTypes.RecipeSteps
         {
             _contentDefinitionManager = contentDefinitionManager;
         }
+        public int Order => 0;
 
         public Task ExecuteAsync(RecipeExecutionContext context)
         {

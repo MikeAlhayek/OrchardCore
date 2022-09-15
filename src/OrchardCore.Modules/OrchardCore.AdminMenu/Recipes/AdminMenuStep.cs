@@ -19,6 +19,7 @@ namespace OrchardCore.AdminMenu.Recipes
         {
             _adminMenuService = adminMenuService;
         }
+        public int Order => 0;
 
         public async Task ExecuteAsync(RecipeExecutionContext context)
         {

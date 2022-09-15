@@ -39,6 +39,8 @@ namespace OrchardCore.Layers.Recipes
             _factories = factories;
         }
 
+        public int Order => 0;
+
         public async Task ExecuteAsync(RecipeExecutionContext context)
         {
             if (!String.Equals(context.Name, "Layers", StringComparison.OrdinalIgnoreCase))

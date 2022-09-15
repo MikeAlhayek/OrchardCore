@@ -21,6 +21,11 @@ namespace OrchardCore.Roles.Recipes
             _roleManager = roleManager;
         }
 
+        /// <summary>
+        /// Ensure this step in executed before FeatureStep
+        /// </summary>
+        public int Order => -100;
+
         public async Task ExecuteAsync(RecipeExecutionContext context)
         {
             if (!String.Equals(context.Name, "Roles", StringComparison.OrdinalIgnoreCase))

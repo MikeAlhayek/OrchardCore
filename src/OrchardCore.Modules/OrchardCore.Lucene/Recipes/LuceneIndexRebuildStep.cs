@@ -13,6 +13,8 @@ namespace OrchardCore.Lucene.Recipes
     /// </summary>
     public class LuceneIndexRebuildStep : IRecipeStepHandler
     {
+        public int Order => 0;
+
         public async Task ExecuteAsync(RecipeExecutionContext context)
         {
             if (!String.Equals(context.Name, "lucene-index-rebuild", StringComparison.OrdinalIgnoreCase))
