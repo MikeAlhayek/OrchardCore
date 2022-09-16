@@ -42,10 +42,10 @@ namespace OrchardCore.Contents.Drivers
 
             if (contentTypeDefinition != null)
             {
+                var hasStereotype = contentTypeDefinition.TryGetStereotype(out var stereotype);
+
                 contentsMetadataShape.Displaying(ctx =>
                 {
-                    var hasStereotype = contentTypeDefinition.TryGetStereotype(out var stereotype);
-
                     if (hasStereotype && !String.Equals("Content", stereotype, StringComparison.OrdinalIgnoreCase))
                     {
                         ctx.Shape.Metadata.Alternates.Add($"{stereotype}__ContentsMetadata");
