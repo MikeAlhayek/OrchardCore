@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+using OrchardCore.Infrastructure.Security.Permissions;
 using OrchardCore.Localization;
 using OrchardCore.Localization.DataAnnotations;
 using OrchardCore.Localization.PortableObject;
@@ -32,6 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddPortableObjectLocalization(this IServiceCollection services, Action<LocalizationOptions> setupAction)
         {
             services.AddSingleton<IPluralRuleProvider, DefaultPluralRuleProvider>();
+            services.AddSingleton<IPermissionLocalizer, PermissionLocalizer>();
             services.AddSingleton<ITranslationProvider, PoFilesTranslationsProvider>();
             services.AddSingleton<ILocalizationFileLocationProvider, ContentRootPoFileLocationProvider>();
             services.AddSingleton<ILocalizationManager, LocalizationManager>();
