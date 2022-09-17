@@ -60,10 +60,10 @@ namespace OrchardCore.ContentManagement.Display.ContentDisplay
                     result.Differentiator($"{partName}-{shapeType}");
                 }
 
-                var stereotype = _typePartDefinition.ContentTypeDefinition.GetStereotype() ?? String.Empty;
-
                 result.Displaying(ctx =>
                 {
+                    var stereotype = _typePartDefinition.ContentTypeDefinition.GetStereotype() ?? String.Empty;
+
                     string[] displayTypes;
 
                     if (editorPartType == shapeType)
