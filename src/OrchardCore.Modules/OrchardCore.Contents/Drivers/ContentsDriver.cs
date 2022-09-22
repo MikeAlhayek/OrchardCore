@@ -42,10 +42,10 @@ namespace OrchardCore.Contents.Drivers
 
             if (contentTypeDefinition != null)
             {
+                var hasStereotype = contentTypeDefinition.TryGetStereotype(out var stereotype);
+
                 contentsMetadataShape.Displaying(ctx =>
                 {
-                    var hasStereotype = contentTypeDefinition.TryGetStereotype(out var stereotype);
-
                     if (hasStereotype && !String.Equals("Content", stereotype, StringComparison.OrdinalIgnoreCase))
                     {
                         ctx.Shape.Metadata.Alternates.Add($"{stereotype}__ContentsMetadata");
@@ -74,16 +74,11 @@ namespace OrchardCore.Contents.Drivers
                         var hasPreviewPermission = await _authorizationService.AuthorizeAsync(context.User, CommonPermissions.PreviewContent, contentItem);
                         var hasClonePermission = await _authorizationService.AuthorizeAsync(context.User, CommonPermissions.CloneContent, contentItem);
 
-                        if (hasPublishPermission || hasDeletePermission || hasPreviewPermission || hasClonePermission)
-                        {
-                            return true;
-                        }
-
-                        return false;
+                        return hasPublishPermission || hasDeletePermission || hasPreviewPermission || hasClonePermission;
                     })
                 );
             }
-
+            results.Add(Shape("ContentsTitle_SummaryAdmin", new ContentItemViewModel(contentItem)).Location("SummaryAdmin", "Title:10"));
             results.Add(Shape("ContentsTags_SummaryAdmin", new ContentItemViewModel(contentItem)).Location("SummaryAdmin", "Tags:10"));
             results.Add(Shape("ContentsMeta_SummaryAdmin", new ContentItemViewModel(contentItem)).Location("SummaryAdmin", "Meta:20"));
 

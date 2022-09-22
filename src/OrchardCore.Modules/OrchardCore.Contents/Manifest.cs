@@ -50,3 +50,14 @@ using OrchardCore.Modules.Manifest;
     Dependencies = new[] { "OrchardCore.Contents", "OrchardCore.Deployment" },
     Category = "Content Management"
 )]
+
+[assembly: Feature(
+    Id = "OrchardCore.Contents.Profile",
+    Name = "Content Profiles",
+    Description = "Provides a way to display content items in a profile.",
+    Dependencies = new[]
+    {
+        "OrchardCore.Contents"
+    },
+    Category = "Content Management"
+)]

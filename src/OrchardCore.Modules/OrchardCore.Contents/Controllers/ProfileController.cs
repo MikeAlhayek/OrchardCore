@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OrchardCore.Admin;
 using OrchardCore.ContentManagement;
 using OrchardCore.ContentManagement.Display;
@@ -28,7 +29,6 @@ using OrchardCore.Modules;
 using OrchardCore.Navigation;
 using OrchardCore.Routing;
 using OrchardCore.Security.Permissions;
-using OrchardCore.Settings;
 using YesSql;
 using YesSql.Filters.Query;
 using YesSql.Services;
@@ -41,7 +41,7 @@ public class ProfileController : Controller, IUpdateModel
 {
     private readonly IContentManager _contentManager;
     private readonly IContentDefinitionManager _contentDefinitionManager;
-    private readonly ISiteService _siteService;
+    private readonly PagerOptions _pagerOptions;
     private readonly ISession _session;
     private readonly IContentItemDisplayManager _contentItemDisplayManager;
     private readonly INotifier _notifier;
@@ -60,7 +60,7 @@ public class ProfileController : Controller, IUpdateModel
         IContentManager contentManager,
         IContentItemDisplayManager contentItemDisplayManager,
         IContentDefinitionManager contentDefinitionManager,
-        ISiteService siteService,
+        IOptions<PagerOptions> pagerOptions,
         INotifier notifier,
         ISession session,
         IShapeFactory shapeFactory,
@@ -75,7 +75,7 @@ public class ProfileController : Controller, IUpdateModel
         _notifier = notifier;
         _contentItemDisplayManager = contentItemDisplayManager;
         _session = session;
-        _siteService = siteService;
+        _pagerOptions = pagerOptions.Value;
         _contentManager = contentManager;
         _contentDefinitionManager = contentDefinitionManager;
         _updateModelAccessor = updateModelAccessor;
@@ -194,17 +194,11 @@ public class ProfileController : Controller, IUpdateModel
         // Populate route values to maintain previous route data when generating page links.
         options.RouteValues.TryAdd("q", options.FilterResult.ToString());
 
-        var siteSettings = await _siteService.GetSiteSettingsAsync();
-        var pager = new Pager(pagerParameters, siteSettings.PageSize);
+        var pager = new Pager(pagerParameters, _pagerOptions.GetPageSize());
 
         var routeData = new RouteData(options.RouteValues);
-        var maxPagedCount = siteSettings.MaxPagedCount;
-        if (maxPagedCount > 0 && pager.PageSize > maxPagedCount)
-        {
-            pager.PageSize = maxPagedCount;
-        }
 
-        var pagerShape = (await New.Pager(pager)).TotalItemCount(maxPagedCount > 0 ? maxPagedCount : await query.CountAsync()).RouteData(routeData);
+        var pagerShape = (await New.Pager(pager)).TotalItemCount(_pagerOptions.MaxPagedCount > 0 ? _pagerOptions.MaxPagedCount : await query.CountAsync()).RouteData(routeData);
 
         // Load items so that loading handlers are invoked.
         var pageOfContentItems = await query.Skip(pager.GetStartIndex()).Take(pager.PageSize).ListAsync(_contentManager);
@@ -308,7 +302,7 @@ public class ProfileController : Controller, IUpdateModel
                     await _notifier.SuccessAsync(H["Content removed successfully."]);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException(nameof(options.BulkAction));
             }
         }
 
@@ -613,7 +607,7 @@ public class ProfileController : Controller, IUpdateModel
             ProfileContentItem = profileContentItem,
         });
 
-        var shape = await _shapeFactory.CreateAsync<ProfileViewModel>("ProfileViewModel", async viewModel =>
+        var shape = await _shapeFactory.CreateAsync<ProfileViewModel>("Profile", async viewModel =>
         {
             viewModel.ContentType = contentTypeDefinition;
             viewModel.ProfileContentItem = profileContentItem;
@@ -622,11 +616,14 @@ public class ProfileController : Controller, IUpdateModel
             viewModel.Body = body;
             viewModel.Navigation = await _shapeFactory.CreateAsync("Navigation", Arguments.From(new
             {
-                // this should be built dynamicly "List/Add" should be added based on the config of each 
+                // The menu should be built dynamiclly to allow adding a default menu items like "List" and "Add" should be added based on the config of each 
                 MenuName = $"Profile.{profileContentItem.ContentType}",
                 RouteData = GetRouteData()
             }));
         });
+
+        // allow creating Profile__[ContentType] (i.e., Profile-[ContentType].cshtml)
+        shape.Metadata.Alternates.Add($"Profile__{profileContentItem.ContentType}");
 
         return shape;
     }

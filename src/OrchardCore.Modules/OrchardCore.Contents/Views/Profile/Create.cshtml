@@ -1,38 +1,8 @@
-@using OrchardCore.ContentManagement
-@using OrchardCore.ContentManagement.Metadata
-@using OrchardCore.Mvc.Utilities
-@inject IContentDefinitionManager ContentDefinitionManager
-
-@if (Model.Header != null)
-{
-    <div class="card bg-light mb-3">
-        <div class="card-body">
-            @await DisplayAsync(Model.Header)
-        </div>
-    </div>
+@{
+    RenderTitleSegments(T["New {0}", Model.ContentType?.DisplayName]);
 }
-
-@if (Model.Navigation != null)
-{
-    @await DisplayAsync(Model.Navigation)
-}
-
-@if (Model.Body != null)
-{
-    <div class="card bg-light mb-3">
-        <div class="card-body">
-
-            @{
-                RenderTitleSegments(T["New {0}", Model.ContentType?.DisplayName]);
-            }
-            <h3 class="card-title mb-3">@T["New {0}", Model.ContentType?.DisplayName]</h3>
-            <form asp-action="Create" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentTypeId="@Model.ContentType.Name" asp-route-returnUrl="@Context.Request.Query["ReturnUrl"]" method="post" enctype="multipart/form-data" class="no-multisubmit">
-                @Html.ValidationSummary()
-                @await DisplayAsync(Model.Body)
-            </form>
-
-        </div>
-    </div>
-}
-
-
+<h3 class="card-title mb-3">@T["New {0}", Model.ContentType?.DisplayName]</h3>
+<form asp-action="Create" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentTypeId="@Model.ContentType.Name" asp-route-returnUrl="@Context.Request.Query["ReturnUrl"]" method="post" enctype="multipart/form-data" class="no-multisubmit">
+    @Html.ValidationSummary()
+    @await DisplayAsync(Model)
+</form>
