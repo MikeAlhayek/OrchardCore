@@ -25,7 +25,7 @@ public class ContentProfileSettingsDisplayDriver : ContentTypeDefinitionDisplayD
         {
             var settings = contentTypeDefinition.GetSettings<ContentProfileSettings>();
 
-            model.Editor = settings.Editor;
+            model.DisplayMode = settings.DisplayMode;
             var containedTypes = settings.ContainedContentTypes ?? Array.Empty<string>();
             model.ContainedContentTypes = containedTypes;
             model.DisplayAsProfile = containedTypes.Length > 0;
@@ -52,7 +52,7 @@ public class ContentProfileSettingsDisplayDriver : ContentTypeDefinitionDisplayD
 
             context.Builder.WithSettings(new ContentProfileSettings()
             {
-                Editor = model.Editor,
+                DisplayMode = model.DisplayMode,
                 ContainedContentTypes = selected,
             });
         }

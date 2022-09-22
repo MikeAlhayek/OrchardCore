@@ -6,7 +6,7 @@ public class ContentProfileSettingsViewModel
 {
     public string[] ContainedContentTypes { get; set; } = Array.Empty<string>();
 
-    public string Editor { get; set; }
+    public string DisplayMode { get; set; }
 
     public bool DisplayAsProfile { get; set; }
 }

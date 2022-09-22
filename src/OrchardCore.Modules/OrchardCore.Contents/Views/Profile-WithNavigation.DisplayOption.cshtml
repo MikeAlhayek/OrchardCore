@@ -1,0 +1,5 @@
+@{
+    string currentDisplayMode = Model.DisplayMode;
+}
+
+<option value="WithNavigation" selected="@(String.Equals("WithNavigation", currentDisplayMode, StringComparison.OrdinalIgnoreCase))">@T["With Navigation"]</option>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using GraphQL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Localization;
@@ -100,19 +101,6 @@ public class ProfileController : Controller, IUpdateModel
             return NotFound();
         }
 
-        // TODO, ensure contentTypeDefinition belongs to a profile
-        var contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentTypeId);
-
-        if (contentTypeDefinition == null || !contentTypeDefinition.GetSettings<ContentTypeSettings>().Listable)
-        {
-            return NotFound();
-        }
-
-        if (!await _authorizationService.AuthorizeContentTypeDefinitionsAsync(User, CommonPermissions.ViewContent, new[] { contentTypeDefinition }, _contentManager))
-        {
-            return Forbid();
-        }
-
         var profileContentItem = await _contentManager.GetAsync(profileId);
 
         if (profileContentItem == null)
@@ -121,6 +109,32 @@ public class ProfileController : Controller, IUpdateModel
         }
 
         if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+        {
+            return Forbid();
+        }
+
+        var profileTypeDefinition = _contentDefinitionManager.GetTypeDefinition(profileContentItem.ContentType);
+
+        if (profileTypeDefinition == null)
+        {
+            return NotFound();
+        }
+
+        var profileSettings = profileTypeDefinition.GetSettings<ContentProfileSettings>();
+
+        if (profileSettings.ContainedContentTypes == null || !profileSettings.ContainedContentTypes.Contains(contentTypeId, StringComparer.OrdinalIgnoreCase))
+        {
+            return NotFound();
+        }
+
+        var contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentTypeId);
+
+        if (contentTypeDefinition == null || !contentTypeDefinition.GetSettings<ContentTypeSettings>().Listable)
+        {
+            return NotFound();
+        }
+
+        if (!await _authorizationService.AuthorizeContentTypeDefinitionsAsync(User, CommonPermissions.ViewContent, new[] { contentTypeDefinition }, _contentManager))
         {
             return Forbid();
         }
@@ -217,7 +231,7 @@ public class ProfileController : Controller, IUpdateModel
         options.ContentItemsCount = contentItemSummaries.Count;
         options.TotalItemCount = pagerShape.TotalItemCount;
 
-        var model = await GetProfileShapeAync(profileContentItem, contentTypeDefinition, null, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", async viewModel =>
+        var model = await GetProfileShapeAync(profileContentItem, profileSettings.DisplayMode, contentTypeDefinition, null, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", async viewModel =>
         {
             viewModel.ContentItems = contentItemSummaries;
             viewModel.Pager = pagerShape;
@@ -257,8 +271,6 @@ public class ProfileController : Controller, IUpdateModel
             var checkedContentItems = await _session.Query<ContentItem, ContentItemIndex>().Where(x => x.DocumentId.IsIn(itemIds) && x.Latest).ListAsync(_contentManager);
             switch (options.BulkAction)
             {
-                case ContentsBulkAction.None:
-                    break;
                 case ContentsBulkAction.PublishNow:
                     foreach (var item in checkedContentItems)
                     {
@@ -302,7 +314,7 @@ public class ProfileController : Controller, IUpdateModel
                     await _notifier.SuccessAsync(H["Content removed successfully."]);
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(options.BulkAction));
+                    break;
             }
         }
 
@@ -361,7 +373,7 @@ public class ProfileController : Controller, IUpdateModel
             return Forbid();
         }
 
-        var model = await GetProfileShapeAync(profileContentItem, contentTypeDefinition, null, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, true));
+        var model = await GetProfileShapeAync(profileContentItem, profileSettings.DisplayMode, contentTypeDefinition, null, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, true));
 
         return View(model);
     }
@@ -438,13 +450,20 @@ public class ProfileController : Controller, IUpdateModel
 
         IShape shape;
 
+        var profileTypeDefinition = _contentDefinitionManager.GetTypeDefinition(profileContentItem.ContentType);
+
+        if (profileTypeDefinition == null)
+        {
+            return NotFound();
+        }
+
+        var displayType = profileTypeDefinition.GetSettings<ContentProfileSettings>().DisplayMode;
+
         if (String.IsNullOrWhiteSpace(contentItemId))
         {
-            // When contentItemId is empty, means we are displaying the profile not a content within a profile
+            // When contentItemId is empty, we display the profile not a content within a profile
 
-            var profileTypeDefinition = _contentDefinitionManager.GetTypeDefinition(profileContentItem.ContentType);
-
-            shape = await GetProfileShapeAync(profileContentItem, profileTypeDefinition, null, await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, _updateModelAccessor.ModelUpdater, "Detail"));
+            shape = await GetProfileShapeAync(profileContentItem, displayType, profileTypeDefinition, null, await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, _updateModelAccessor.ModelUpdater, "Detail"));
         }
         else
         {
@@ -479,7 +498,7 @@ public class ProfileController : Controller, IUpdateModel
 
             var contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-            shape = await GetProfileShapeAync(profileContentItem, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
+            shape = await GetProfileShapeAync(profileContentItem, displayType, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
         }
 
         return View(shape);
@@ -504,15 +523,22 @@ public class ProfileController : Controller, IUpdateModel
             return Forbid();
         }
 
+        var profileTypeDefinition = _contentDefinitionManager.GetTypeDefinition(profileContentItem.ContentType);
+
+        if (profileTypeDefinition == null)
+        {
+            return NotFound();
+        }
+
+        var profileSettings = profileTypeDefinition.GetSettings<ContentProfileSettings>();
+
         IShape shape;
 
         if (String.IsNullOrWhiteSpace(contentItemId))
         {
             // When contentItemId is empty, means we are displaying the profile not a content within a profile
 
-            var profileTypeDefinition = _contentDefinitionManager.GetTypeDefinition(profileContentItem.ContentType);
-
-            shape = await GetProfileShapeAync(profileContentItem, profileTypeDefinition, null, await _contentItemDisplayManager.BuildEditorAsync(profileContentItem, _updateModelAccessor.ModelUpdater, false));
+            shape = await GetProfileShapeAync(profileContentItem, profileSettings.DisplayMode, profileTypeDefinition, null, await _contentItemDisplayManager.BuildEditorAsync(profileContentItem, _updateModelAccessor.ModelUpdater, false));
         }
         else
         {
@@ -547,7 +573,7 @@ public class ProfileController : Controller, IUpdateModel
 
             var contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-            shape = await GetProfileShapeAync(profileContentItem, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false));
+            shape = await GetProfileShapeAync(profileContentItem, profileSettings.DisplayMode, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false));
         }
 
         return View(shape);
@@ -600,14 +626,23 @@ public class ProfileController : Controller, IUpdateModel
         });
     }
 
-    private async Task<IShape> GetProfileShapeAync(ContentItem profileContentItem, ContentTypeDefinition contentTypeDefinition, ContentItem contentItem, IShape body)
+    private async Task<IShape> GetProfileShapeAync(ContentItem profileContentItem, string displayMode, ContentTypeDefinition contentTypeDefinition, ContentItem contentItem, IShape body)
     {
         HttpContext.Features.Set(new ContentProfileFeature()
         {
             ProfileContentItem = profileContentItem,
         });
 
-        var shape = await _shapeFactory.CreateAsync<ProfileViewModel>("Profile", async viewModel =>
+        var shapeType = "Profile";
+
+        var hasDisplayType = !String.IsNullOrEmpty(displayMode);
+
+        if (hasDisplayType)
+        {
+            shapeType += $"_{displayMode}";
+        }
+
+        var shape = await _shapeFactory.CreateAsync<ProfileViewModel>(shapeType, async viewModel =>
         {
             viewModel.ContentType = contentTypeDefinition;
             viewModel.ProfileContentItem = profileContentItem;
@@ -622,8 +657,14 @@ public class ProfileController : Controller, IUpdateModel
             }));
         });
 
-        // allow creating Profile__[ContentType] (i.e., Profile-[ContentType].cshtml)
-        shape.Metadata.Alternates.Add($"Profile__{profileContentItem.ContentType}");
+        // Add content type alternate [ContentType]__Profile (i.e., [ContentType]-Profile.cshtml)
+        shape.Metadata.Alternates.Add($"{profileContentItem.ContentType}__Profile");
+
+        if (hasDisplayType)
+        {
+            // Add content type with display mode alternate [ContentType]__Profile_[DisplayMode] (i.e., [ContentType]-Profile.[DisplayMode].cshtml)
+            shape.Metadata.Alternates.Add($"{profileContentItem.ContentType}__Profile_{displayMode}");
+        }
 
         return shape;
     }

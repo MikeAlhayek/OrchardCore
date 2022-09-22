@@ -1,5 +1,3 @@
-@model ProfileViewModel
-
 @if (Model.Header != null)
 {
     <div class="card bg-light mb-3">
@@ -7,6 +5,13 @@
             @await DisplayAsync(Model.Header)
         </div>
     </div>
+}
+
+@if (Model.Navigation != null)
+{
+    <nav class="navbar navbar-expand-lg navbar-light bg-light border mb-3 rounded-1">
+        @await DisplayAsync(Model.Navigation)
+    </nav>
 }
 
 @if (Model.Body != null)

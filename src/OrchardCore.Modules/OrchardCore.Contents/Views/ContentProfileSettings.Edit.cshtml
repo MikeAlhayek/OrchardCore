@@ -1,5 +1,13 @@
 @model OrchardCore.Contents.ViewModels.ContentProfileSettingsViewModel
 
+@inject OrchardCore.DisplayManagement.Theming.IThemeManager ThemeManager
+@inject OrchardCore.DisplayManagement.Descriptors.IShapeTableManager ShapeTableManager
+
+@{
+    var theme = await ThemeManager.GetThemeAsync();
+    var shapeTable = ShapeTableManager.GetShapeTable(theme?.Id);
+    var displayShapes = shapeTable.Bindings.Keys.Where(x => x.StartsWith("Profile_DisplayOption__", StringComparison.OrdinalIgnoreCase) || x.Equals("Profile_DisplayOption", StringComparison.OrdinalIgnoreCase)).ToList();
+}
 <div class="mb-3">
     <div class="form-check">
         <input type="checkbox" class="form-check-input" asp-for="DisplayAsProfile" checked="@Model.DisplayAsProfile">
@@ -14,12 +22,29 @@
     @await Component.InvokeAsync("SelectContentTypes", new { selectedContentTypes = Model.ContainedContentTypes, htmlName = Html.NameFor(m => m.ContainedContentTypes) })
 </div>
 
+@if (displayShapes.Any())
+{
+    <div class="mb-3">
+        <div class="w-100 w-md-50 pe-md-3">
+            <label asp-for="DisplayMode">@T["What type of display mode should be used?"]</label>
+            <select asp-for="DisplayMode" class="form-select" id="field-display-select">
+                @foreach (var displayShape in displayShapes)
+                {
+                    dynamic shape = await Factory.CreateAsync(displayShape);
+                    shape.DisplayMode = Model.DisplayMode;
+                    @await DisplayAsync(shape)
+                }
+            </select>
+        </div>
+    </div>
+}
+
 <script at="Foot">
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         var displayAsProfile = document.getElementById('@Html.IdFor(x => x.DisplayAsProfile)');
         var contentTypesContainer = document.getElementById('ContentTypesContainer');
 
-        displayAsProfile.addEventListener('change', function(src) {
+        displayAsProfile.addEventListener('change', function (src) {
 
             if (src.target.checked) {
                 contentTypesContainer.classList.remove('d-none');
