@@ -11,11 +11,11 @@
     }
 
     // Morphing the shape to keep Model untouched
+    Model.Metadata.Type = "NavigationItemLink";
     Model.Metadata.Alternates.Clear();
     Model.Classes.Clear();
-    Model.Metadata.Type = "NavigationItemLink";
-
-    @if ((int)Model.Level > 0)
+    bool selfHandled = false;
+    @if ((int)Model.Level > 1)
     {
         Model.Classes.Add("dropdown-item");
     }
@@ -27,9 +27,23 @@
             Model.Classes.Add("dropdown-toggle");
             Model.Attributes.Add("data-bs-toggle", "dropdown");
         }
+        else
+        {
+            selfHandled = true;
+            //Model.Metadata.Type = "ProfileNavigationItemLink";
+            var link = new TagBuilder("a");
+            link.Attributes.Add("href", Model.Href ?? "#");
+            link.AddCssClass("nav-link");
+            link.InnerHtml.AppendHtml(Model.Text);
+
+            tag.InnerHtml.AppendHtml(link);
+        }
     }
 
-    tag.InnerHtml.AppendHtml(await DisplayAsync(Model));
+    @if (!selfHandled)
+    {
+        tag.InnerHtml.AppendHtml(await DisplayAsync(Model));
+    }
 
     if (parentTag != null)
     {

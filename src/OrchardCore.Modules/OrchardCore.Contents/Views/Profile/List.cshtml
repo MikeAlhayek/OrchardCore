@@ -1,8 +1,13 @@
 @{
-    var title = T["Manage {0} Content", Model.ContentType.DisplayName];
+    var title = T["Manage Content"];
+
+    if (Model.ContentType != null)
+    {
+        title = T["Manage {0} Content", Model.ContentType.DisplayName];
+    }
     RenderTitleSegments(title);
 }
 <h3 class="card-title mb-3">@title</h3>
-<form asp-action="List" asp-controller="Profile" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentTypeId="@Model.ContentType.Name" method="post" id="items-form" autocomplete="off">
+<form asp-action="List" asp-controller="Profile" asp-route-profileId="@Model.ProfileContentItem.ContentItemId" asp-route-contentTypeId="@Model.ContentType?.Name" method="post" id="items-form" autocomplete="off">
     @await DisplayAsync(Model)
 </form>

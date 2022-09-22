@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using GraphQL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Localization;
@@ -96,7 +95,7 @@ public class ProfileController : Controller, IUpdateModel
         ContentOptionsViewModel options,
         PagerParameters pagerParameters)
     {
-        if (String.IsNullOrWhiteSpace(profileId) || String.IsNullOrWhiteSpace(contentTypeId))
+        if (String.IsNullOrWhiteSpace(profileId))
         {
             return NotFound();
         }
@@ -122,24 +121,61 @@ public class ProfileController : Controller, IUpdateModel
 
         var profileSettings = profileTypeDefinition.GetSettings<ContentProfileSettings>();
 
-        if (profileSettings.ContainedContentTypes == null || !profileSettings.ContainedContentTypes.Contains(contentTypeId, StringComparer.OrdinalIgnoreCase))
+        options.CreatableTypes = new List<SelectListItem>();
+        ContentTypeDefinition contentTypeDefinition = null;
+
+        if (!String.IsNullOrEmpty(contentTypeId))
         {
-            return NotFound();
+            if (profileSettings.ContainedContentTypes == null || !profileSettings.ContainedContentTypes.Contains(contentTypeId, StringComparer.OrdinalIgnoreCase))
+            {
+                return NotFound();
+            }
+
+            contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentTypeId);
+            options.SelectedContentType = contentTypeId;
+
+            if (contentTypeDefinition == null || !contentTypeDefinition.GetSettings<ContentTypeSettings>().Listable)
+            {
+                return NotFound();
+            }
+
+            if (!await _authorizationService.AuthorizeContentTypeDefinitionsAsync(User, CommonPermissions.ViewContent, new[] { contentTypeDefinition }, _contentManager))
+            {
+                return Forbid();
+            }
+
+            // Allows non-creatable types to be created by another admin page.
+            if (contentTypeDefinition.IsCreatable() || options.CanCreateSelectedContentType)
+            {
+                var dummyContent = await _contentManager.NewAsync(contentTypeDefinition.Name);
+                dummyContent.Owner = CurrentUserId();
+
+                if (await IsAuthorizedAsync(CommonPermissions.EditContent, dummyContent))
+                {
+                    options.CreatableTypes.Add(new SelectListItem(contentTypeDefinition.DisplayName, contentTypeDefinition.Name));
+                }
+            }
         }
-
-        var contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentTypeId);
-
-        if (contentTypeDefinition == null || !contentTypeDefinition.GetSettings<ContentTypeSettings>().Listable)
+        else
         {
-            return NotFound();
-        }
+            foreach (var containedContentType in profileSettings.ContainedContentTypes)
+            {
+                var definition = _contentDefinitionManager.GetTypeDefinition(containedContentType);
 
-        if (!await _authorizationService.AuthorizeContentTypeDefinitionsAsync(User, CommonPermissions.ViewContent, new[] { contentTypeDefinition }, _contentManager))
-        {
-            return Forbid();
-        }
+                if (!definition.IsCreatable())
+                {
+                    continue;
+                }
 
-        options.SelectedContentType = contentTypeId;
+                var dummyContent = await _contentManager.NewAsync(definition.Name);
+                dummyContent.Owner = CurrentUserId();
+
+                if (await IsAuthorizedAsync(CommonPermissions.EditContent, dummyContent))
+                {
+                    options.CreatableTypes.Add(new SelectListItem(definition.DisplayName, definition.Name));
+                }
+            }
+        }
 
         // The filter is bound seperately and mapped to the options.
         // The options must still be bound so that options that are not filters are still bound
@@ -147,19 +183,6 @@ public class ProfileController : Controller, IUpdateModel
 
         // When the selected content type is provided via the route or options a placeholder node is used to apply a filter.
         options.FilterResult.TryAddOrReplace(new ContentTypeFilterNode(options.SelectedContentType));
-
-        options.CreatableTypes = new List<SelectListItem>();
-
-        // Allows non creatable types to be created by another admin page.
-        if (contentTypeDefinition.IsCreatable() || options.CanCreateSelectedContentType)
-        {
-            var contentItem = await CreateContentItemForOwnedByCurrentAsync(contentTypeDefinition.Name, profileId);
-
-            if (await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
-            {
-                options.CreatableTypes.Add(new SelectListItem(contentTypeDefinition.DisplayName, contentTypeDefinition.Name));
-            }
-        }
 
         // We populate the remaining SelectLists.
         options.ContentStatuses = new List<SelectListItem>()
@@ -231,7 +254,7 @@ public class ProfileController : Controller, IUpdateModel
         options.ContentItemsCount = contentItemSummaries.Count;
         options.TotalItemCount = pagerShape.TotalItemCount;
 
-        var model = await GetProfileShapeAync(profileContentItem, profileSettings.DisplayMode, contentTypeDefinition, null, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", async viewModel =>
+        var model = await GetProfileShapeAync(profileContentItem, profileSettings, contentTypeDefinition, null, await _shapeFactory.CreateAsync<ListContentsViewModel>("ContentsAdminList", async viewModel =>
         {
             viewModel.ContentItems = contentItemSummaries;
             viewModel.Pager = pagerShape;
@@ -373,7 +396,7 @@ public class ProfileController : Controller, IUpdateModel
             return Forbid();
         }
 
-        var model = await GetProfileShapeAync(profileContentItem, profileSettings.DisplayMode, contentTypeDefinition, null, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, true));
+        var model = await GetProfileShapeAync(profileContentItem, profileSettings, contentTypeDefinition, null, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, true));
 
         return View(model);
     }
@@ -457,13 +480,13 @@ public class ProfileController : Controller, IUpdateModel
             return NotFound();
         }
 
-        var displayType = profileTypeDefinition.GetSettings<ContentProfileSettings>().DisplayMode;
+        var profileSettings = profileTypeDefinition.GetSettings<ContentProfileSettings>();
 
         if (String.IsNullOrWhiteSpace(contentItemId))
         {
             // When contentItemId is empty, we display the profile not a content within a profile
 
-            shape = await GetProfileShapeAync(profileContentItem, displayType, profileTypeDefinition, null, await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, _updateModelAccessor.ModelUpdater, "Detail"));
+            shape = await GetProfileShapeAync(profileContentItem, profileSettings, profileTypeDefinition, null, await _contentItemDisplayManager.BuildDisplayAsync(profileContentItem, _updateModelAccessor.ModelUpdater, "Detail"));
         }
         else
         {
@@ -498,7 +521,7 @@ public class ProfileController : Controller, IUpdateModel
 
             var contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-            shape = await GetProfileShapeAync(profileContentItem, displayType, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
+            shape = await GetProfileShapeAync(profileContentItem, profileSettings, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
         }
 
         return View(shape);
@@ -538,7 +561,7 @@ public class ProfileController : Controller, IUpdateModel
         {
             // When contentItemId is empty, means we are displaying the profile not a content within a profile
 
-            shape = await GetProfileShapeAync(profileContentItem, profileSettings.DisplayMode, profileTypeDefinition, null, await _contentItemDisplayManager.BuildEditorAsync(profileContentItem, _updateModelAccessor.ModelUpdater, false));
+            shape = await GetProfileShapeAync(profileContentItem, profileSettings, profileTypeDefinition, null, await _contentItemDisplayManager.BuildEditorAsync(profileContentItem, _updateModelAccessor.ModelUpdater, false));
         }
         else
         {
@@ -573,7 +596,7 @@ public class ProfileController : Controller, IUpdateModel
 
             var contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-            shape = await GetProfileShapeAync(profileContentItem, profileSettings.DisplayMode, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false));
+            shape = await GetProfileShapeAync(profileContentItem, profileSettings, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false));
         }
 
         return View(shape);
@@ -626,20 +649,21 @@ public class ProfileController : Controller, IUpdateModel
         });
     }
 
-    private async Task<IShape> GetProfileShapeAync(ContentItem profileContentItem, string displayMode, ContentTypeDefinition contentTypeDefinition, ContentItem contentItem, IShape body)
+    private async Task<IShape> GetProfileShapeAync(ContentItem profileContentItem, ContentProfileSettings profileSettings, ContentTypeDefinition contentTypeDefinition, ContentItem contentItem, IShape body)
     {
         HttpContext.Features.Set(new ContentProfileFeature()
         {
             ProfileContentItem = profileContentItem,
+            ContentProfileSettings = profileSettings,
         });
 
         var shapeType = "Profile";
 
-        var hasDisplayType = !String.IsNullOrEmpty(displayMode);
+        var hasDisplayType = !String.IsNullOrEmpty(profileSettings.DisplayMode);
 
         if (hasDisplayType)
         {
-            shapeType += $"_{displayMode}";
+            shapeType += $"_{profileSettings.DisplayMode}";
         }
 
         var shape = await _shapeFactory.CreateAsync<ProfileViewModel>(shapeType, async viewModel =>
@@ -663,7 +687,7 @@ public class ProfileController : Controller, IUpdateModel
         if (hasDisplayType)
         {
             // Add content type with display mode alternate [ContentType]__Profile_[DisplayMode] (i.e., [ContentType]-Profile.[DisplayMode].cshtml)
-            shape.Metadata.Alternates.Add($"{profileContentItem.ContentType}__Profile_{displayMode}");
+            shape.Metadata.Alternates.Add($"{profileContentItem.ContentType}__Profile_{profileSettings.DisplayMode}");
         }
 
         return shape;

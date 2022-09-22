@@ -328,7 +328,8 @@ namespace OrchardCore.Contents
             services.AddSingleton<IIndexProvider, ContainedProfilePartIndexProvider>();
             services.AddScoped<IShapeTableProvider, ProfileShapes>();
             services.AddDataMigration<ProfileMigrations>();
-            services.AddScoped<INavigationProvider, ProfileMenu>();
+            services.AddScoped<INavigationProvider, StandardProfileMenu>();
+            services.AddScoped<INavigationProvider, WithNavigationProfileMenu>();
             services.AddScoped<IContentTypeDefinitionDisplayDriver, ContentProfileSettingsDisplayDriver>();
             services.AddScoped<IShapeTableProvider, ProfileMenuShapes>();
             services.AddScoped<IContentsAdminListFilter, ProfileContentTypeAdminListFilter>();
