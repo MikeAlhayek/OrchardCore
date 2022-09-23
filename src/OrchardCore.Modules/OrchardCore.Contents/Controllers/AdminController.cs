@@ -16,6 +16,7 @@ using OrchardCore.ContentManagement.Display;
 using OrchardCore.ContentManagement.Metadata;
 using OrchardCore.ContentManagement.Metadata.Models;
 using OrchardCore.ContentManagement.Records;
+using OrchardCore.Contents.Models;
 using OrchardCore.Contents.Services;
 using OrchardCore.Contents.ViewModels;
 using OrchardCore.DisplayManagement;
@@ -89,9 +90,7 @@ namespace OrchardCore.Contents.Controllers
             PagerParameters pagerParameters,
             string contentTypeId = "")
         {
-            var contentTypeDefinitions = _contentDefinitionManager.ListTypeDefinitions()
-                    .Where(ctd => ctd.IsCreatable())
-                    .OrderBy(ctd => ctd.DisplayName);
+            var contentTypeDefinitions = _contentDefinitionManager.ListTypeDefinitions().ToList();
 
             if (!await _authorizationService.AuthorizeContentTypeDefinitionsAsync(User, CommonPermissions.ViewContent, contentTypeDefinitions, _contentManager))
             {
@@ -108,6 +107,8 @@ namespace OrchardCore.Contents.Controllers
             // The options must still be bound so that options that are not filters are still bound
             options.FilterResult = queryFilterResult;
 
+            var excludedTypes = GetExcludedContentTypes();
+
             // Populate the creatable types.
             if (!String.IsNullOrEmpty(options.SelectedContentType))
             {
@@ -123,7 +124,7 @@ namespace OrchardCore.Contents.Controllers
                 var creatableList = new List<SelectListItem>();
 
                 // Allows non creatable types to be created by another admin page.
-                if (contentTypeDefinition.IsCreatable() || options.CanCreateSelectedContentType)
+                if ((contentTypeDefinition.IsCreatable() || options.CanCreateSelectedContentType) && !excludedTypes.Contains(contentTypeDefinition.Name))
                 {
                     var contentItem = await CreateContentItemForOwnedByCurrentAsync(contentTypeDefinition.Name);
 
@@ -138,21 +139,17 @@ namespace OrchardCore.Contents.Controllers
 
             if (options.CreatableTypes == null)
             {
-                var creatableList = new List<SelectListItem>();
-                if (contentTypeDefinitions.Any())
-                {
-                    foreach (var contentTypeDefinition in contentTypeDefinitions)
-                    {
-                        var contentItem = await CreateContentItemForOwnedByCurrentAsync(contentTypeDefinition.Name);
+                options.CreatableTypes = new List<SelectListItem>();
 
-                        if (contentTypeDefinition.IsCreatable() && await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
-                        {
-                            creatableList.Add(new SelectListItem(contentTypeDefinition.DisplayName, contentTypeDefinition.Name));
-                        }
+                foreach (var contentTypeDefinition in contentTypeDefinitions)
+                {
+                    var contentItem = await CreateContentItemForOwnedByCurrentAsync(contentTypeDefinition.Name);
+
+                    if (contentTypeDefinition.IsCreatable() && !excludedTypes.Contains(contentTypeDefinition.Name) && await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
+                    {
+                        options.CreatableTypes.Add(new SelectListItem(contentTypeDefinition.DisplayName, contentTypeDefinition.Name));
                     }
                 }
-
-                options.CreatableTypes = creatableList;
             }
 
             // We populate the remaining SelectLists.
@@ -189,9 +186,9 @@ namespace OrchardCore.Contents.Controllers
                 var listableTypes = new List<ContentTypeDefinition>();
                 var userNameIdentifier = CurrentUserId();
 
-                foreach (var ctd in _contentDefinitionManager.ListTypeDefinitions())
+                foreach (var ctd in contentTypeDefinitions)
                 {
-                    if (!ctd.IsListable())
+                    if (!ctd.IsListable() || excludedTypes.Contains(ctd.Name))
                     {
                         continue;
                     }
@@ -298,8 +295,6 @@ namespace OrchardCore.Contents.Controllers
                 var checkedContentItems = await _session.Query<ContentItem, ContentItemIndex>().Where(x => x.DocumentId.IsIn(itemIds) && x.Latest).ListAsync(_contentManager);
                 switch (options.BulkAction)
                 {
-                    case ContentsBulkAction.None:
-                        break;
                     case ContentsBulkAction.PublishNow:
                         foreach (var item in checkedContentItems)
                         {
@@ -343,7 +338,7 @@ namespace OrchardCore.Contents.Controllers
                         await _notifier.SuccessAsync(H["Content removed successfully."]);
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        break;
                 }
             }
 
@@ -737,5 +732,23 @@ namespace OrchardCore.Contents.Controllers
             return await _authorizationService.AuthorizeAsync(User, permission, resource);
         }
 
+        private List<string> GetExcludedContentTypes()
+        {
+            var contentTypeDefinitions = new List<string>();
+
+            var definitions = _contentDefinitionManager.ListTypeDefinitions();
+
+            foreach (var definition in definitions)
+            {
+                var settings = definition.GetSettings<ContentProfileSettings>();
+
+                if (settings.ContainedContentTypes != null)
+                {
+                    contentTypeDefinitions.AddRange(settings.ContainedContentTypes);
+                }
+            }
+
+            return contentTypeDefinitions;
+        }
     }
 }
