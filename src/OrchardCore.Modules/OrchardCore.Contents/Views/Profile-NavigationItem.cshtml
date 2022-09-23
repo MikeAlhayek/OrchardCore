@@ -1,3 +1,4 @@
+@using OrchardCore.Navigation
 @{
     int level = (int)Model.Level;
     TagBuilder tag = Tag(Model, "li");
@@ -30,10 +31,17 @@
         else
         {
             selfHandled = true;
-            //Model.Metadata.Type = "ProfileNavigationItemLink";
             var link = new TagBuilder("a");
             link.Attributes.Add("href", Model.Href ?? "#");
             link.AddCssClass("nav-link");
+
+            var menuItem = Model.Item as MenuItem;
+
+            if (menuItem != null && menuItem.HasRouteValuesAs(ViewContext.HttpContext.Request.RouteValues))
+            {
+                link.AddCssClass("active");
+            }
+
             link.InnerHtml.AppendHtml(Model.Text);
 
             tag.InnerHtml.AppendHtml(link);

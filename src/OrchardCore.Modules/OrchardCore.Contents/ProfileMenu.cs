@@ -57,13 +57,11 @@ public class StandardProfileMenu : INavigationProvider
                     .Action("Edit", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentItemId = String.Empty })
                     .Permission(CommonPermissions.EditContent)
                     .Resource(profileFeature.ProfileContentItem)
-                    .LocalNav()
                 )
             .Add(S["View {0}", profileDisplayName], "20", display => display
                 .Action("Display", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentItemId = String.Empty })
                 .Permission(CommonPermissions.ViewContent)
                 .Resource(profileFeature.ProfileContentItem)
-                .LocalNav()
             );
 
         if (profileFeature.ContentProfileSettings.ContainedContentTypes.Length > 0)
@@ -73,7 +71,6 @@ public class StandardProfileMenu : INavigationProvider
                     .Action("List", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
                     .Permission(CommonPermissions.EditContent)
                     .Resource(profileFeature.ProfileContentItem)
-                    .LocalNav()
                 );
         }
 
