@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,7 +17,6 @@ using OrchardCore.ContentManagement.Display;
 using OrchardCore.ContentManagement.Metadata;
 using OrchardCore.ContentManagement.Metadata.Models;
 using OrchardCore.ContentManagement.Records;
-using OrchardCore.Contents.Models;
 using OrchardCore.Contents.Services;
 using OrchardCore.Contents.ViewModels;
 using OrchardCore.DisplayManagement;
@@ -107,7 +107,9 @@ namespace OrchardCore.Contents.Controllers
             // The options must still be bound so that options that are not filters are still bound
             options.FilterResult = queryFilterResult;
 
-            var excludedTypes = GetExcludedContentTypes();
+            var profileContentTypeProvider = HttpContext.RequestServices.GetService<ProfileContentTypeProvider>();
+
+            var excludedTypes = profileContentTypeProvider?.GetAllContainedInProfileContentTypeNames() ?? Enumerable.Empty<string>();
 
             // Populate the creatable types.
             if (!String.IsNullOrEmpty(options.SelectedContentType))
@@ -730,25 +732,6 @@ namespace OrchardCore.Contents.Controllers
         private async Task<bool> IsAuthorizedAsync(Permission permission, object resource)
         {
             return await _authorizationService.AuthorizeAsync(User, permission, resource);
-        }
-
-        private List<string> GetExcludedContentTypes()
-        {
-            var contentTypeDefinitions = new List<string>();
-
-            var definitions = _contentDefinitionManager.ListTypeDefinitions();
-
-            foreach (var definition in definitions)
-            {
-                var settings = definition.GetSettings<ContentProfileSettings>();
-
-                if (settings.ContainedContentTypes != null)
-                {
-                    contentTypeDefinitions.AddRange(settings.ContainedContentTypes);
-                }
-            }
-
-            return contentTypeDefinitions;
         }
     }
 }

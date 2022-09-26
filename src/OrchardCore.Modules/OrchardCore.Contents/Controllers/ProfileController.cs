@@ -704,7 +704,7 @@ public class ProfileController : Controller, IUpdateModel
 
         if (contentTypeDefinition == null)
         {
-            // given an invalid contentTypeId
+            // Given an invalid contentTypeId.
             return NotFound();
         }
 
@@ -712,7 +712,7 @@ public class ProfileController : Controller, IUpdateModel
 
         if (profileContentItem == null)
         {
-            // given an invalid profileId
+            // Given an invalid profileId.
             return NotFound();
         }
 
@@ -720,7 +720,7 @@ public class ProfileController : Controller, IUpdateModel
 
         if (profileTypeDefinition == null)
         {
-            // the given profileId does not have content definition
+            // The given profileId does not have content definition.
             return NotFound();
         }
 
@@ -728,13 +728,13 @@ public class ProfileController : Controller, IUpdateModel
 
         if (profileSettings == null || profileSettings.ContainedContentTypes == null || !profileSettings.ContainedContentTypes.Contains(contentTypeDefinition.Name, StringComparer.OrdinalIgnoreCase))
         {
-            // the given contentTypeId does not belong to the profile
+            // The given contentTypeId does not belong to the profile.
             return NotFound();
         }
 
         if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
         {
-            // no permission to view profile
+            // No permission to view profile.
             return Forbid();
         }
 
@@ -759,22 +759,6 @@ public class ProfileController : Controller, IUpdateModel
         }
 
         await conditionallyPublish(contentItem);
-
-        /*
-        if (!String.IsNullOrEmpty(returnUrl) && !stayOnSamePage)
-        {
-            return this.LocalRedirect(returnUrl, true);
-        }
-
-        var adminRouteValues = (await _contentManager.PopulateAspectAsync<ContentItemMetadata>(contentItem)).AdminRouteValues;
-
-        if (!String.IsNullOrEmpty(returnUrl))
-        {
-            adminRouteValues.Add("returnUrl", returnUrl);
-        }
-
-        return RedirectToRoute(adminRouteValues);
-        */
 
         if (returnUrl == null)
         {
@@ -853,12 +837,12 @@ public class ProfileController : Controller, IUpdateModel
 
         if (returnUrl == null)
         {
-            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { "ContentItemId", contentItem.ContentItemId } });
+            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { nameof(contentItemId), contentItem.ContentItemId } });
         }
 
         if (stayOnSamePage)
         {
-            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { "ContentItemId", contentItem.ContentItemId }, { "returnUrl", returnUrl } });
+            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { nameof(contentItemId), contentItem.ContentItemId }, { "returnUrl", returnUrl } });
         }
 
         return this.LocalRedirect(returnUrl, true);

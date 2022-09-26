@@ -126,7 +126,7 @@ namespace OrchardCore.Contents
 
                 o.MemberAccessStrategy.Register<LiquidContentAccessor, FluidValue>((obj, name, context) => GetContentByHandleAsync((LiquidTemplateContext)context, name));
 
-                async Task<FluidValue> GetContentByHandleAsync(LiquidTemplateContext context, string handle, bool latest = false)
+                static async Task<FluidValue> GetContentByHandleAsync(LiquidTemplateContext context, string handle, bool latest = false)
                 {
                     var contentHandleManager = context.Services.GetRequiredService<IContentHandleManager>();
 
@@ -333,6 +333,10 @@ namespace OrchardCore.Contents
             services.AddScoped<IContentTypeDefinitionDisplayDriver, ContentProfileSettingsDisplayDriver>();
             services.AddScoped<IShapeTableProvider, ProfileMenuShapes>();
             services.AddScoped<IContentsAdminListFilter, ProfileContentTypeAdminListFilter>();
+            services.AddScoped<IContentDisplayDriver, ProfileContentDriver>();
+            services.AddContentPart<ContainedProfilePart>();
+            services.AddContentPart<SelectedProfilePart>();
+            services.AddScoped<ProfileContentTypeProvider>();
         }
 
         public override void Configure(IApplicationBuilder builder, IEndpointRouteBuilder routes, IServiceProvider serviceProvider)
