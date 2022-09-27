@@ -272,7 +272,7 @@ public class ProfileController : Controller, IUpdateModel
     {
         if (String.IsNullOrEmpty(profileId))
         {
-            return RedirectToAction(nameof(AdminController.List), typeof(AdminController).ControllerName()
+            return RedirectToAction(nameof(AdminController.List), typeof(AdminController).ControllerName(),
                 new RouteValueDictionary {
                 { "q", options.SearchText },
             });

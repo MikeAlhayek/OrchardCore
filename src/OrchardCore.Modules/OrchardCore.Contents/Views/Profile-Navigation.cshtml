@@ -5,6 +5,8 @@
 
     TagBuilder tag = Tag(Model, "ul");
     tag.AddCssClass("navbar-nav");
+    tag.AddCssClass("me-auto");
+
 
     foreach (var item in Model.Items)
     {
@@ -12,11 +14,4 @@
     }
 }
 
-<div class="container-fluid">
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#profileNavigation" aria-controls="profileNavigation" aria-expanded="false" aria-label="@T["Toggle navigation"]">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="profileNavigation">
-        @tag
-    </div>
-</div>
+@tag

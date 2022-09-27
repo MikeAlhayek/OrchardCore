@@ -10,7 +10,14 @@
 @if (Model.Navigation != null)
 {
     <nav class="navbar navbar-expand-lg navbar-light bg-light border mb-3 rounded-1">
-        @await DisplayAsync(Model.Navigation)
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#profileNavigation" aria-controls="profileNavigation" aria-expanded="false" aria-label="@T["Toggle navigation"]">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="profileNavigation">
+                @await DisplayAsync(Model.Navigation)
+            </div>
+        </div>
     </nav>
 }
 

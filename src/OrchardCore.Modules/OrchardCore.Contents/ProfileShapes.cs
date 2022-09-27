@@ -31,9 +31,9 @@ public class ProfileShapes : IShapeTableProvider
 
                     var definition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-                    var profileSettings = definition.GetSettings<ContentProfileSettings>();
+                    var profileSettings = definition?.GetSettings<ContentProfileSettings>();
 
-                    if (profileSettings.ContainedContentTypes != null && profileSettings.ContainedContentTypes.Length > 0)
+                    if (profileSettings != null && profileSettings.ContainedContentTypes != null && profileSettings.ContainedContentTypes.Length > 0)
                     {
                         displaying.Shape.Metadata.Alternates.Add("Profile_ContentsTitle_SummaryAdmin");
                     }
