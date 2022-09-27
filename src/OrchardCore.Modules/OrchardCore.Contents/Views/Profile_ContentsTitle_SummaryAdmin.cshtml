@@ -24,11 +24,11 @@
 
 @if (canViewProfile && await AuthorizationService.AuthorizeAsync(User, CommonPermissions.EditContent, Model.ContentItem))
 {
-    <a asp-controller="Profile" asp-action="Edit" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@FullRequestPath">@Model.ContentItem</a>
+    <a asp-controller="Profile" asp-action="Edit" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId">@Model.ContentItem</a>
 }
 else if (canViewProfile && await AuthorizationService.AuthorizeAsync(User, CommonPermissions.ViewContent, Model.ContentItem))
 {
-    <a asp-controller="Profile" asp-action="Display" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@FullRequestPath">@Model.ContentItem</a>
+    <a asp-controller="Profile" asp-action="Display" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId">@Model.ContentItem</a>
 }
 else
 {

@@ -17,6 +17,7 @@ using OrchardCore.ContentManagement.Display;
 using OrchardCore.ContentManagement.Metadata;
 using OrchardCore.ContentManagement.Metadata.Models;
 using OrchardCore.ContentManagement.Records;
+using OrchardCore.Contents.Models;
 using OrchardCore.Contents.Services;
 using OrchardCore.Contents.ViewModels;
 using OrchardCore.DisplayManagement;
@@ -432,7 +433,7 @@ namespace OrchardCore.Contents.Controllers
 
             await conditionallyPublish(contentItem);
 
-            if (!String.IsNullOrEmpty(returnUrl) && !stayOnSamePage)
+            if (!stayOnSamePage && !String.IsNullOrEmpty(returnUrl))
             {
                 return this.LocalRedirect(returnUrl, true);
             }
@@ -442,6 +443,11 @@ namespace OrchardCore.Contents.Controllers
             if (!String.IsNullOrEmpty(returnUrl))
             {
                 adminRouteValues.Add("returnUrl", returnUrl);
+            }
+
+            if (stayOnSamePage)
+            {
+                return ProcessStayOnSamePage(contentItem, (item) => RedirectToRoute(adminRouteValues));
             }
 
             return RedirectToRoute(adminRouteValues);
@@ -519,6 +525,7 @@ namespace OrchardCore.Contents.Controllers
             {
                 return Forbid();
             }
+
             return await EditPOST(contentItemId, returnUrl, stayOnSamePage, async contentItem =>
             {
                 await _contentManager.PublishAsync(contentItem);
@@ -550,6 +557,7 @@ namespace OrchardCore.Contents.Controllers
             if (!ModelState.IsValid)
             {
                 await _session.CancelAsync();
+
                 return View(nameof(Edit), model);
             }
 
@@ -562,10 +570,29 @@ namespace OrchardCore.Contents.Controllers
 
             if (stayOnSamePage)
             {
-                return RedirectToAction(nameof(Edit), new RouteValueDictionary { { "ContentItemId", contentItem.ContentItemId }, { "returnUrl", returnUrl } });
+                return ProcessStayOnSamePage(contentItem, (item) => RedirectToAction(nameof(Edit), new RouteValueDictionary { { "ContentItemId", contentItem.ContentItemId }, { "returnUrl", returnUrl } }));
             }
 
             return this.LocalRedirect(returnUrl, true);
+        }
+
+        private IActionResult ProcessStayOnSamePage(ContentItem contentItem, Func<ContentItem, IActionResult> callback)
+        {
+            var profileContentTypeProvider = HttpContext.RequestServices.GetService<ProfileContentTypeProvider>();
+
+            if (profileContentTypeProvider != null)
+            {
+                var contentType = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
+
+                var settings = contentType.GetSettings<ContentProfileSettings>();
+
+                if (settings.ContainedContentTypes != null && settings.ContainedContentTypes.Length > 0)
+                {
+                    return RedirectToAction(nameof(ProfileController.Edit), "Profile", new RouteValueDictionary { { "ProfileId", contentItem.ContentItemId } });
+                }
+            }
+
+            return callback(contentItem);
         }
 
         [HttpPost]

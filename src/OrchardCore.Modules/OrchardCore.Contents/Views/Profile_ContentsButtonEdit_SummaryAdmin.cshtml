@@ -11,9 +11,10 @@
     string profileId = contentItem.ContentItemId;
     string contentItemId = null;
     bool canViewProfile = true;
-
+    var returnUrl = String.Empty;
     if (feature != null)
     {
+        returnUrl = FullRequestPath;
         var containedProfilePart = contentItem.As<ContainedProfilePart>();
 
         if (containedProfilePart != null && containedProfilePart.ProfileContentItemId == feature.ProfileContentItem.ContentItemId)
@@ -27,16 +28,15 @@
 
 @if (await AuthorizationService.AuthorizeAsync(User, CommonPermissions.EditContent, contentItem))
 {
-    <a asp-controller="Profile" asp-action="Edit" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@FullRequestPath" class="btn btn-sm btn-primary edit"><span>@T["Edit"]</span></a>
+    <a asp-controller="Profile" asp-action="Edit" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@returnUrl" class="btn btn-sm btn-primary edit"><span>@T["Edit"]</span></a>
 }
 
 @if (hasPublished)
 {
-    <a asp-controller="Profile" asp-action="Display" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@FullRequestPath" target="_blank" class="btn btn-sm btn-success view"><span>@T["View"]</span></a>
-
+    <a asp-controller="Admin" asp-action="Display" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@returnUrl" target="_blank" class="btn btn-sm btn-success view"><span>@T["View"]</span></a>
 }
 
 @if (contentItem.HasDraft() && await AuthorizationService.AuthorizeAsync(User, CommonPermissions.PreviewContent, contentItem))
 {
-    <a asp-controller="Profile" asp-action="Preview" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@FullRequestPath" target="_blank" class="btn btn-sm btn-primary preview"><span>@T["Preview Draft"]</span></a>
+    <a asp-controller="Item" asp-action="Preview" asp-route-profileId="@profileId" asp-route-contentItemId="@contentItemId" asp-route-returnUrl="@returnUrl" target="_blank" class="btn btn-sm btn-primary preview"><span>@T["Preview Draft"]</span></a>
 }

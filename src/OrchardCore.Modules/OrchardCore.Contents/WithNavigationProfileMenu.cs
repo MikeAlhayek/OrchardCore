@@ -6,7 +6,9 @@ using OrchardCore.ContentManagement;
 using OrchardCore.ContentManagement.Metadata;
 using OrchardCore.ContentManagement.Metadata.Settings;
 using OrchardCore.ContentManagement.Utilities;
+using OrchardCore.Contents.Controllers;
 using OrchardCore.Contents.Models;
+using OrchardCore.Mvc.Core.Utilities;
 using OrchardCore.Navigation;
 
 namespace OrchardCore.Contents;
@@ -56,17 +58,18 @@ public class WithNavigationProfileMenu : INavigationProvider
         }
 
         var profileDisplayName = definition.DisplayName ?? definition.Name.CamelFriendly();
+        var profileControllerName = typeof(ProfileController).ControllerName();
 
         // At this point we create a menu for any other DisplayMode
         builder
             .Add(S[profileDisplayName], profile => profile
                 .Add(S["Edit"], S["Edit"].PrefixPosition(), edit => edit
-                    .Action("Edit", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentItemId = String.Empty })
+                    .Action(nameof(ProfileController.Edit), profileControllerName, new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
                     .Permission(CommonPermissions.EditContent)
                     .Resource(profileFeature.ProfileContentItem)
                 )
                 .Add(S["View"], S["View"].PrefixPosition(), display => display
-                    .Action("Display", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentItemId = String.Empty })
+                    .Action(nameof(ProfileController.Display), profileControllerName, new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
                     .Permission(CommonPermissions.ViewContent)
                     .Resource(profileFeature.ProfileContentItem)
                 )
@@ -84,7 +87,7 @@ public class WithNavigationProfileMenu : INavigationProvider
                 builder
                     .Add(S[typeDisplayName], type => type
                         .Add(S["Manage"], S["Manage"].PrefixPosition(), list => list
-                            .Action("List", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentTypeId = containedContentType })
+                            .Action(nameof(ProfileController.List), profileControllerName, new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentTypeId = containedContentType })
                             .Permission(CommonPermissions.ViewContent)
                             .Resource(dummyContainedItem)
                         )
@@ -96,10 +99,9 @@ public class WithNavigationProfileMenu : INavigationProvider
                 builder
                     .Add(S[typeDisplayName], type => type
                         .Add(S["New"], S["New"].PrefixPosition(), list => list
-                            .Action("Create", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentTypeId = containedContentType })
+                            .Action(nameof(ProfileController.Create), profileControllerName, new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentTypeId = containedContentType })
                             .Permission(CommonPermissions.EditContent)
                             .Resource(dummyContainedItem)
-                            .LocalNav()
                         )
                     );
             }

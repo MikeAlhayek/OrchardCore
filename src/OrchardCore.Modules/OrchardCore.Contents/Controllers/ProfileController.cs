@@ -26,6 +26,7 @@ using OrchardCore.DisplayManagement;
 using OrchardCore.DisplayManagement.ModelBinding;
 using OrchardCore.DisplayManagement.Notify;
 using OrchardCore.Modules;
+using OrchardCore.Mvc.Core.Utilities;
 using OrchardCore.Navigation;
 using OrchardCore.Routing;
 using OrchardCore.Security.Permissions;
@@ -265,14 +266,27 @@ public class ProfileController : Controller, IUpdateModel
         return View(model);
     }
 
-    [HttpPost, ActionName("List")]
+    [HttpPost, ActionName(nameof(List))]
     [FormValueRequired("submit.Filter")]
-    public async Task<ActionResult> ListFilterPOST(ContentOptionsViewModel options)
+    public async Task<ActionResult> ListFilterPOST(ContentOptionsViewModel options, string profileId, string contentTypeId)
     {
+        if (String.IsNullOrEmpty(profileId))
+        {
+            return RedirectToAction(nameof(AdminController.List), typeof(AdminController).ControllerName()
+                new RouteValueDictionary {
+                { "q", options.SearchText },
+            });
+        }
+
         // When the user has typed something into the search input no further evaluation of the form post is required.
         if (!String.Equals(options.SearchText, options.OriginalSearchText, StringComparison.OrdinalIgnoreCase))
         {
-            return RedirectToAction(nameof(List), new RouteValueDictionary { { "q", options.SearchText } });
+            return RedirectToAction(nameof(List),
+                new RouteValueDictionary {
+                { "q", options.SearchText },
+                { "profileId", profileId },
+                { "contentTypeId", contentTypeId }
+            });
         }
 
         // Evaluate the values provided in the form post and map them to the filter result and route values.
@@ -280,11 +294,17 @@ public class ProfileController : Controller, IUpdateModel
 
         // The route value must always be added after the editors have updated the models.
         options.RouteValues.TryAdd("q", options.FilterResult.ToString());
+        options.RouteValues.TryAdd("profileId", profileId);
+
+        if (!String.IsNullOrEmpty(contentTypeId))
+        {
+            options.RouteValues.TryAdd("contentTypeId", contentTypeId);
+        }
 
         return RedirectToAction(nameof(List), options.RouteValues);
     }
 
-    [HttpPost, ActionName("List")]
+    [HttpPost, ActionName(nameof(List))]
     [FormValueRequired("submit.BulkAction")]
     public async Task<ActionResult> ListPOST(ContentOptionsViewModel options, IEnumerable<int> itemIds)
     {
@@ -401,7 +421,7 @@ public class ProfileController : Controller, IUpdateModel
         return View(model);
     }
 
-    [HttpPost, ActionName("Create")]
+    [HttpPost, ActionName(nameof(Create))]
     [FormValueRequired("submit.Save")]
     public async Task<IActionResult> CreatePOST(string profileId, string contentTypeId, [Bind(Prefix = "submit.Save")] string submitSave, string returnUrl)
     {
@@ -426,7 +446,7 @@ public class ProfileController : Controller, IUpdateModel
         });
     }
 
-    [HttpPost, ActionName("Create")]
+    [HttpPost, ActionName(nameof(Create))]
     [FormValueRequired("submit.Publish")]
     public async Task<IActionResult> CreateAndPublishPOST(string profileId, string contentTypeId, [Bind(Prefix = "submit.Publish")] string submitPublish, string returnUrl)
     {
@@ -521,7 +541,7 @@ public class ProfileController : Controller, IUpdateModel
 
             var contentTypeDefinition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-            shape = await GetProfileShapeAync(profileContentItem, profileSettings, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "DetailAdmin"));
+            shape = await GetProfileShapeAync(profileContentItem, profileSettings, contentTypeDefinition, contentItem, await _contentItemDisplayManager.BuildDisplayAsync(contentItem, _updateModelAccessor.ModelUpdater, "Detail"));
         }
 
         return View(shape);
@@ -602,44 +622,40 @@ public class ProfileController : Controller, IUpdateModel
         return View(shape);
     }
 
-    [HttpPost, ActionName("Edit")]
+    [HttpPost, ActionName(nameof(Edit))]
     [FormValueRequired("submit.Save")]
     public Task<IActionResult> EditPOST(string profileId, string contentItemId, [Bind(Prefix = "submit.Save")] string submitSave, string returnUrl)
     {
         var stayOnSamePage = submitSave == "submit.SaveAndContinue";
-        return EditPOST(profileId, contentItemId, returnUrl, stayOnSamePage, async contentItem =>
+
+        return EditPOST(profileId, contentItemId, returnUrl, stayOnSamePage, false, async contentItem =>
         {
             await _contentManager.SaveDraftAsync(contentItem);
 
             var typeDefinition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
-            await _notifier.SuccessAsync(string.IsNullOrWhiteSpace(typeDefinition.DisplayName)
+            await _notifier.SuccessAsync(String.IsNullOrWhiteSpace(typeDefinition.DisplayName)
                 ? H["Your content draft has been saved."]
                 : H["Your {0} draft has been saved.", typeDefinition.DisplayName]);
         });
     }
 
-    [HttpPost, ActionName("Edit")]
+    [HttpPost, ActionName(nameof(Edit))]
     [FormValueRequired("submit.Publish")]
     public async Task<IActionResult> EditAndPublishPOST(string profileId, string contentItemId, [Bind(Prefix = "submit.Publish")] string submitPublish, string returnUrl)
     {
         var stayOnSamePage = submitPublish == "submit.PublishAndContinue";
 
-        var contentItem = await _contentManager.GetAsync(contentItemId, VersionOptions.Latest);
-
-        if (contentItem == null)
+        return await EditPOST(profileId, contentItemId, returnUrl, stayOnSamePage, true, async contentItem =>
         {
-            return NotFound();
-        }
-
-        if (!await IsAuthorizedAsync(CommonPermissions.PublishContent, contentItem))
-        {
-            return Forbid();
-        }
-
-        return await EditPOST(profileId, contentItemId, returnUrl, stayOnSamePage, async contentItem =>
-        {
-            await _contentManager.PublishAsync(contentItem);
+            if (contentItem.Published)
+            {
+                await _contentManager.UpdateAsync(contentItem);
+            }
+            else
+            {
+                await _contentManager.PublishAsync(contentItem);
+            }
 
             var typeDefinition = _contentDefinitionManager.GetTypeDefinition(contentItem.ContentType);
 
@@ -755,6 +771,7 @@ public class ProfileController : Controller, IUpdateModel
         if (!ModelState.IsValid)
         {
             await _session.CancelAsync();
+
             return View(model);
         }
 
@@ -773,76 +790,85 @@ public class ProfileController : Controller, IUpdateModel
         return this.LocalRedirect(returnUrl, true);
     }
 
-    private async Task<IActionResult> EditPOST(string profileId, string contentItemId, string returnUrl, bool stayOnSamePage, Func<ContentItem, Task> conditionallyPublish)
+    private async Task<IActionResult> EditPOST(string profileId, string contentItemId, string returnUrl, bool stayOnSamePage, bool isPublish, Func<ContentItem, Task> conditionallyPublish)
     {
-        if (String.IsNullOrWhiteSpace(profileId) || String.IsNullOrWhiteSpace(contentItemId))
+        if (String.IsNullOrWhiteSpace(profileId))
         {
             return NotFound();
         }
 
-        var contentItem = await _contentManager.GetAsync(contentItemId, VersionOptions.DraftRequired);
+        ContentItem contentItem = null;
 
-        if (contentItem == null)
-        {
-            return NotFound();
-        }
-
-        if (!await IsAuthorizedAsync(CommonPermissions.EditContent, contentItem))
-        {
-            return Forbid();
-        }
-
-        var profilePart = contentItem.As<ContainedProfilePart>();
-
-        if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
-        {
-            return NotFound();
-        }
-
-        if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
-        {
-            // At this point, this content item was not created using profile.
-            // Or, it was created prior the content-type was configured as profile.
-            // Redirect to standard content item 
-            return RedirectToAction("Edit", "Admin", new { contentItemId });
-        }
-
-        if (profilePart.ProfileContentItemId != profileId)
-        {
-            // if the contained ProfileId does not equal to profile, the given contentItemId does not belong to the given profileId.
-            return NotFound();
-        }
-
-        var profileContentItem = await _contentManager.GetAsync(profilePart.ProfileContentItemId);
+        var profileContentItem = await _contentManager.GetAsync(profileId);
 
         if (profileContentItem == null)
         {
             return NotFound();
         }
 
-        if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+        if (!String.IsNullOrEmpty(contentItemId))
         {
-            return Forbid();
+            if (!await IsAuthorizedAsync(CommonPermissions.ViewContent, profileContentItem))
+            {
+                return Forbid();
+            }
+
+            contentItem = await _contentManager.GetAsync(contentItemId, VersionOptions.DraftRequired);
+
+            if (contentItem == null)
+            {
+                return NotFound();
+            }
+
+            if (!await IsAuthorizedAsync(isPublish ? CommonPermissions.PublishContent : CommonPermissions.EditContent, contentItem))
+            {
+                return Forbid();
+            }
+
+            var profilePart = contentItem.As<ContainedProfilePart>();
+
+            if (String.IsNullOrEmpty(profilePart?.ProfileContentItemId))
+            {
+                // At this point, this content item was not created using profile.
+                // Or, it was created prior the content-type was configured as profile.
+                // Redirect to standard content item 
+                return RedirectToAction("Edit", "Admin", new { contentItemId });
+            }
+
+            if (profilePart.ProfileContentItemId != profileId)
+            {
+                // if the contained ProfileId does not equal to profile, the given contentItemId does not belong to the given profileId.
+                return NotFound();
+            }
+        }
+        else
+        {
+            // At this point we are editing the profile content item. So make sure the use has permission to edit it
+            if (!await IsAuthorizedAsync(isPublish ? CommonPermissions.PublishContent : CommonPermissions.EditContent, profileContentItem))
+            {
+                return Forbid();
+            }
         }
 
-        var model = await _contentItemDisplayManager.UpdateEditorAsync(contentItem, _updateModelAccessor.ModelUpdater, false);
+        var model = await _contentItemDisplayManager.UpdateEditorAsync(contentItem ?? profileContentItem, _updateModelAccessor.ModelUpdater, false);
 
         if (!ModelState.IsValid)
         {
             await _session.CancelAsync();
+
             return View(nameof(Edit), model);
         }
 
-        await conditionallyPublish(contentItem);
+        await conditionallyPublish(contentItem ?? profileContentItem);
 
         if (returnUrl == null)
         {
-            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { nameof(contentItemId), contentItem.ContentItemId } });
+            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { nameof(contentItemId), contentItemId } });
         }
 
         if (stayOnSamePage)
         {
-            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { nameof(contentItemId), contentItem.ContentItemId }, { "returnUrl", returnUrl } });
+            return RedirectToAction(nameof(Edit), new RouteValueDictionary { { nameof(profileId), profileId }, { nameof(contentItemId), contentItemId }, { "returnUrl", returnUrl } });
         }
 
         return this.LocalRedirect(returnUrl, true);

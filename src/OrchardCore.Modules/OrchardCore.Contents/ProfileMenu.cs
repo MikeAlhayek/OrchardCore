@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Localization;
 using OrchardCore.ContentManagement.Metadata;
 using OrchardCore.ContentManagement.Utilities;
+using OrchardCore.Contents.Controllers;
 using OrchardCore.Contents.Models;
+using OrchardCore.Mvc.Core.Utilities;
 using OrchardCore.Navigation;
 
 namespace OrchardCore.Contents;
@@ -51,15 +53,15 @@ public class StandardProfileMenu : INavigationProvider
         }
 
         var profileDisplayName = definition.DisplayName ?? definition.Name.CamelFriendly();
-
+        var profileControllerName = typeof(ProfileController).ControllerName();
         builder
             .Add(S["Edit {0}", profileDisplayName], "10", edit => edit
-                    .Action("Edit", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentItemId = String.Empty })
+                    .Action(nameof(ProfileController.Edit), profileControllerName, new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
                     .Permission(CommonPermissions.EditContent)
                     .Resource(profileFeature.ProfileContentItem)
                 )
             .Add(S["View {0}", profileDisplayName], "20", display => display
-                .Action("Display", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId, contentItemId = String.Empty })
+                .Action(nameof(ProfileController.Display), profileControllerName, new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
                 .Permission(CommonPermissions.ViewContent)
                 .Resource(profileFeature.ProfileContentItem)
             );
@@ -68,7 +70,7 @@ public class StandardProfileMenu : INavigationProvider
         {
             builder
                 .Add(S["Manage Content"], "30", edit => edit
-                    .Action("List", "Profile", new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
+                    .Action(nameof(ProfileController.List), profileControllerName, new { area = "OrchardCore.Contents", profileId = profileFeature.ProfileContentItem.ContentItemId })
                     .Permission(CommonPermissions.EditContent)
                     .Resource(profileFeature.ProfileContentItem)
                 );
