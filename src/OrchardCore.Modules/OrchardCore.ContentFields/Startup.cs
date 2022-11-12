@@ -1,10 +1,12 @@
 using System;
+using DealerSolutions.Tests;
 using Fluid;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OrchardCore.Admin;
+using OrchardCore.Apis;
 using OrchardCore.ContentFields.Controllers;
 using OrchardCore.ContentFields.Drivers;
 using OrchardCore.ContentFields.Fields;
@@ -15,12 +17,15 @@ using OrchardCore.ContentFields.Settings;
 using OrchardCore.ContentFields.ViewModels;
 using OrchardCore.ContentManagement;
 using OrchardCore.ContentManagement.Display.ContentDisplay;
+using OrchardCore.ContentManagement.GraphQL;
+using OrchardCore.ContentManagement.GraphQL.Queries;
 using OrchardCore.ContentTypes.Editors;
 using OrchardCore.Data;
 using OrchardCore.Data.Migration;
 using OrchardCore.Indexing;
 using OrchardCore.Modules;
 using OrchardCore.Mvc.Core.Utilities;
+using YesSql.Indexes;
 
 namespace OrchardCore.ContentFields
 {
@@ -135,6 +140,21 @@ namespace OrchardCore.ContentFields
 
             // Migration, can be removed in a future release.
             services.AddDataMigration<Migrations>();
+
+            services.AddContentPart<DrilldownPart>();
+            services.AddSingleton<IIndexProvider, DrilldownPartIndexProvider>();
+
+            services.AddDataMigration<DrilldownMigrations>();
+
+            services.AddObjectGraphType<DrilldownPart, DrilldownPartObjectType>();
+            services.AddInputObjectGraphType<DrilldownPart, DrilldownPartInputObjectType>();
+            services.AddGraphQLFilterType<ContentItem, DrilldownPartGraphQLFilter>();
+
+            services.AddTransient<IIndexAliasProvider, DrilldownPartIndexAliasProvider>();
+
+            services.AddWhereInputIndexPropertyProvider<DrilldownPartIndex>();
+            services.AddDataMigration<VehicleMetadataMigrations>();
+
         }
 
         public override void Configure(IApplicationBuilder builder, IEndpointRouteBuilder routes, IServiceProvider serviceProvider)
