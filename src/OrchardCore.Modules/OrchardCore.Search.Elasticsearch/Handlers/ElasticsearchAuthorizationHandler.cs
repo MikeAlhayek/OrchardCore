@@ -37,9 +37,7 @@ public class ElasticsearchAuthorizationHandler : AuthorizationHandler<Permission
             return;
         }
 
-        var service = _serviceProvider.GetService<ElasticsearchService>();
-
-        if (service == null || service.Name != parameters.ServiceName)
+        if (parameters.ServiceName != ElasticsearchService.ServiceName)
         {
             // Only validate if Elasticsearch is requested.
             return;

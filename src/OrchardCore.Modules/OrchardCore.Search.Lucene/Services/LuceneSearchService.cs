@@ -11,6 +11,8 @@ namespace OrchardCore.Search.Lucene.Services;
 
 public class LuceneSearchService : ISearchService
 {
+    public const string ServiceName = "Lucene";
+
     private readonly ISiteService _siteService;
     private readonly LuceneIndexManager _luceneIndexManager;
     private readonly LuceneIndexingService _luceneIndexingService;
@@ -37,7 +39,7 @@ public class LuceneSearchService : ISearchService
         _logger = logger;
     }
 
-    public string Name => "Lucene";
+    public string Name => ServiceName;
 
     public async Task<SearchResult> SearchAsync(string indexName, string term, int start, int size)
     {

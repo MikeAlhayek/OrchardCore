@@ -36,9 +36,7 @@ public class LuceneAuthorizationHandler : AuthorizationHandler<PermissionRequire
             return;
         }
 
-        var service = _serviceProvider.GetService<LuceneSearchService>();
-
-        if (service == null || service.Name != parameters.ServiceName)
+        if (parameters.ServiceName != LuceneSearchService.ServiceName)
         {
             // Only validate if Lucene is requested.
             return;

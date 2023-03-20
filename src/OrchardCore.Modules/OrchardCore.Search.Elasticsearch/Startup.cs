@@ -137,8 +137,8 @@ namespace OrchardCore.Search.Elasticsearch
                     services.AddScoped<IDisplayDriver<Query>, ElasticQueryDisplayDriver>();
                     services.AddScoped<IContentTypePartDefinitionDisplayDriver, ContentTypePartIndexSettingsDisplayDriver>();
                     services.AddScoped<IContentPartFieldDefinitionDisplayDriver, ContentPartFieldIndexSettingsDisplayDriver>();
-                    services.AddScoped<ElasticsearchService>();
-                    services.AddScoped<ISearchService>(sp => sp.GetRequiredService<ElasticsearchService>());
+                    services.AddScoped<ISearchService, ElasticsearchService>();
+                    services.AddTransient<ElasticsearchProvider>();
                     services.AddScoped<IAuthorizationHandler, ElasticsearchAuthorizationHandler>();
                 }
                 catch (Exception ex)
@@ -233,7 +233,7 @@ namespace OrchardCore.Search.Elasticsearch
     {
         public override void ConfigureServices(IServiceCollection services)
         {
-            if (services.Any(d => d.ImplementationType == typeof(ElasticsearchService)))
+            if (services.Any(d => d.ImplementationType == typeof(ElasticsearchProvider)))
             {
                 services.AddTransient<IDeploymentSource, ElasticIndexDeploymentSource>();
                 services.AddSingleton<IDeploymentStepFactory>(new DeploymentStepFactory<ElasticIndexDeploymentStep>());
@@ -259,7 +259,7 @@ namespace OrchardCore.Search.Elasticsearch
     {
         public override void ConfigureServices(IServiceCollection services)
         {
-            if (services.Any(d => d.ImplementationType == typeof(ElasticsearchService)))
+            if (services.Any(d => d.ImplementationType == typeof(ElasticsearchProvider)))
             {
                 services.AddSingleton<IBackgroundTask, IndexingBackgroundTask>();
             }
@@ -271,7 +271,7 @@ namespace OrchardCore.Search.Elasticsearch
     {
         public override void ConfigureServices(IServiceCollection services)
         {
-            if (services.Any(d => d.ImplementationType == typeof(ElasticsearchService)))
+            if (services.Any(d => d.ImplementationType == typeof(ElasticsearchProvider)))
             {
                 services.AddScoped<IContentPickerResultProvider, ElasticContentPickerResultProvider>();
                 services.AddScoped<IContentPartFieldDefinitionDisplayDriver, ContentPickerFieldElasticEditorSettingsDriver>();

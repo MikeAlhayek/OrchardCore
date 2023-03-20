@@ -83,8 +83,7 @@ namespace OrchardCore.Search.Lucene
             services.AddRecipeExecutionStep<LuceneIndexStep>();
             services.AddRecipeExecutionStep<LuceneIndexRebuildStep>();
             services.AddRecipeExecutionStep<LuceneIndexResetStep>();
-            services.AddScoped<LuceneSearchService>();
-            services.AddScoped<ISearchService>(sp => sp.GetRequiredService<LuceneSearchService>());
+            services.AddScoped<ISearchService, LuceneSearchService>();
             services.AddScoped<IAuthorizationHandler, LuceneAuthorizationHandler>();
         }
 

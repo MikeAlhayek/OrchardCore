@@ -12,6 +12,8 @@ namespace OrchardCore.Search.Elasticsearch.Services;
 
 public class ElasticsearchService : ISearchService
 {
+    public const string ServiceName = "Elasticsearch";
+
     private readonly ISiteService _siteService;
     private readonly ElasticIndexManager _elasticIndexManager;
     private readonly ElasticIndexSettingsService _elasticIndexSettingsService;
@@ -36,7 +38,7 @@ public class ElasticsearchService : ISearchService
         _logger = logger;
     }
 
-    public string Name => "Elasticsearch";
+    public string Name => ServiceName;
 
     public async Task<SearchResult> SearchAsync(string indexName, string term, int start, int pageSize)
     {
