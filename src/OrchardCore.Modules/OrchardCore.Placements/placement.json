@@ -1,0 +1,42 @@
+{
+  "UserPickerField": [
+    {
+      "displayType": "Detail",
+      "contentType": [ "Vehicle" ],
+      "place": "-"
+    }
+  ],
+  "MediaField": [
+    {
+      "displayType": "Detail",
+      "contentType": [ "Vehicle" ],
+      "contentPart": "VehicleMediaPart",
+      "place": "Pictures"
+    }
+  ],
+  "BooleanField": [
+    {
+      "displayType": "Detail",
+      "contentType": [ "Vehicle" ],
+      "contentPart": "ExternalImageLinksPart",
+      "place": "-"
+    }
+  ],
+  "TextField": [
+    {
+      "displayType": "Detail",
+      "contentType": [ "Vehicle" ],
+      "contentPart": [
+        "VendorSourcePart"
+      ]
+    }
+  ],
+  "NumericField": [
+    {
+      "displayType": "Detail",
+      "contentType": [ "Vehicle" ],
+      "contentPart": [ "PurchasedPart" ],
+      "place": "Footer:5"
+    }
+  ]
+}

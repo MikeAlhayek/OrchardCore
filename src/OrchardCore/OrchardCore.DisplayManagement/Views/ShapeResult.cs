@@ -63,32 +63,22 @@ namespace OrchardCore.DisplayManagement.Views
             var placement = context.FindPlacement(_shapeType, _differentiator, displayType, context);
 
             // Look for mapped display type locations
-            if (_otherLocations != null)
+            if (_otherLocations != null && _otherLocations.TryGetValue(displayType, out var displayTypePlacement))
             {
-                string displayTypePlacement;
-                if (_otherLocations.TryGetValue(displayType, out displayTypePlacement))
-                {
-                    _defaultLocation = displayTypePlacement;
-                }
+                _defaultLocation = displayTypePlacement;
             }
 
             // If no placement is found, use the default location
-            if (placement == null)
+            placement ??= new PlacementInfo()
             {
-                placement = new PlacementInfo() { Location = _defaultLocation };
-            }
+                Location = _defaultLocation
+            };
 
-            if (placement.Location == null)
-            {
-                // If a placement was found without actual location, use the default.
-                // It can happen when just setting alternates or wrappers for instance.
-                placement.Location = _defaultLocation;
-            }
+            // If a placement was found without actual location, use the default.
+            // It can happen when just setting alternates or wrappers for instance.
+            placement.Location ??= _defaultLocation;
 
-            if (placement.DefaultPosition == null)
-            {
-                placement.DefaultPosition = context.DefaultPosition;
-            }
+            placement.DefaultPosition ??= context.DefaultPosition;
 
             // If there are no placement or it's explicitly noop then stop rendering execution
             if (String.IsNullOrEmpty(placement.Location) || placement.Location == "-")
@@ -100,13 +90,13 @@ namespace OrchardCore.DisplayManagement.Views
             _groupId = placement.GetGroup() ?? _groupId;
 
             // If the shape's group doesn't match the currently rendered one, return
-            if (!String.Equals(context.GroupId ?? "", _groupId ?? "", StringComparison.OrdinalIgnoreCase))
+            if (!String.Equals(context.GroupId ?? String.Empty, _groupId ?? String.Empty, StringComparison.OrdinalIgnoreCase))
             {
                 return;
             }
 
             // If a condition has been applied to this result evaluate it only if the shape has been placed.
-            if (_renderPredicateAsync != null && !(await _renderPredicateAsync()))
+            if (_renderPredicateAsync != null && !await _renderPredicateAsync())
             {
                 return;
             }
