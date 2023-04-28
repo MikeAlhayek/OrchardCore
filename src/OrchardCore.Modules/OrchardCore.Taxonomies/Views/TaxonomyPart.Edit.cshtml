@@ -42,6 +42,7 @@
            asp-route-controller="Admin"
            asp-route-id="@Model.TaxonomyPart.TermContentType"
            asp-route-taxonomyContentItemId="@Model.TaxonomyPart.ContentItem.ContentItemId"
+           asp-route-returnUrl="@FullRequestPath"
            asp-route-area="OrchardCore.Taxonomies">
                     @T["Add {0}", termContentType.DisplayName]
                 </a>
