@@ -2,6 +2,7 @@
 @using OrchardCore.Settings
 @using OrchardCore.Users.Models
 @using OrchardCore.Entities
+@using OrchardCore.DynamicCache.TagHelpers
 
 @inject ISiteService SiteService
 @inject IAuthorizationService AuthorizationService
@@ -10,6 +11,7 @@
     <form asp-route-area="OrchardCore.Users" asp-controller="Account" asp-action="LogOff" method="post" class="no-multisubmit">
         <a class="dropdown-toggle" id="navbarDropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" role="button">
             <i class="fa-solid fa-fw fa-user" aria-hidden="true" data-bs-toggle="tooltip" data-bs-original-title="@User.Identity.Name"></i>
+            <dynamic-cache cache-id="user-profile-name" cache-context="User" vary-by="@User.FindFirstValue(ClaimTypes.NameIdentifier)"></dynamic-cache>
         </a>
         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
             <li><h6 class="dropdown-header">@T["Signed in as"]<span class="ms-1 font-weight-bold">@User.Identity.Name</span></h6></li>
