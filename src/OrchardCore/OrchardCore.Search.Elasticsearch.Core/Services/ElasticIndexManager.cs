@@ -197,6 +197,20 @@ namespace OrchardCore.Search.Elasticsearch.Core.Services
                     )
                 );
 
+            // Add pipeline for attachments.
+            await _elasticClient.Ingest.PutPipelineAsync("attachments", p => p
+                    .Description("Allows attaching contents")
+                    .Processors(ps => ps
+                        .Attachment<object>(at => at
+                            .Field(new Field(IndexingConstants.AttachmentFullTextKey))
+                            .TargetField(new Field(IndexingConstants.AttachmentFullTextKey))
+                        )
+                        .Remove<object>(at => at
+                            .Field(new Field(IndexingConstants.AttachmentFullTextKey))
+                        )
+                    )
+                );
+
             return response.Acknowledged;
         }
 
@@ -532,7 +546,7 @@ namespace OrchardCore.Search.Elasticsearch.Core.Services
                     case DocumentIndex.Types.Boolean:
 
                         // Store "true"/"false" for booleans.
-                        entries.Add(entry.Name, (bool)(entry.Value));
+                        entries.Add(entry.Name, (bool)entry.Value);
                         break;
 
                     case DocumentIndex.Types.DateTime:
@@ -540,11 +554,11 @@ namespace OrchardCore.Search.Elasticsearch.Core.Services
                         {
                             if (entry.Value is DateTimeOffset)
                             {
-                                entries.Add(entry.Name, ((DateTimeOffset)(entry.Value)).UtcDateTime);
+                                entries.Add(entry.Name, ((DateTimeOffset)entry.Value).UtcDateTime);
                             }
                             else
                             {
-                                entries.Add(entry.Name, ((DateTime)(entry.Value)).ToUniversalTime());
+                                entries.Add(entry.Name, ((DateTime)entry.Value).ToUniversalTime());
                             }
                         }
                         break;
@@ -561,6 +575,15 @@ namespace OrchardCore.Search.Elasticsearch.Core.Services
                         if (entry.Value != null)
                         {
                             entries.Add(entry.Name, Convert.ToDouble(entry.Value));
+                        }
+                        break;
+
+                    case DocumentIndex.Types.File:
+                        if (entry.Value != null)
+                        {
+                            var data = JsonSerializer.SerializeToUtf8Bytes(entry.Value, new JsonSerializerOptions { WriteIndented = false });
+
+                            entries.Add(entry.Name, Convert.ToBase64String(data));
                         }
                         break;
 

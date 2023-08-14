@@ -109,7 +109,15 @@ namespace OrchardCore.Search.Elasticsearch.Core.Handlers
                         }
                         else
                         {
-                            var buildIndexContext = new BuildIndexContext(new DocumentIndex(contentItem.ContentItemId, contentItem.ContentItemVersionId), contentItem, new string[] { contentItem.ContentType }, new ElasticContentIndexSettings());
+                            var buildIndexContext = new BuildIndexContext(
+                                new DocumentIndex(contentItem.ContentItemId, contentItem.ContentItemVersionId),
+                                contentItem,
+                                new string[]
+                                {
+                                    contentItem.ContentType
+                                },
+                                new ElasticContentIndexSettings());
+
                             await contentItemIndexHandlers.InvokeAsync(x => x.BuildIndexAsync(buildIndexContext), logger);
 
                             await elasticIndexManager.DeleteDocumentsAsync(indexSettings.IndexName, new string[] { contentItem.ContentItemId });

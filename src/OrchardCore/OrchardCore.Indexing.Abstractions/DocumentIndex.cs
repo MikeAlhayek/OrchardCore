@@ -66,7 +66,8 @@ namespace OrchardCore.Indexing
             DateTime,
             Boolean,
             Number,
-            GeoPoint
+            GeoPoint,
+            File,
         }
 
         public class GeoPoint

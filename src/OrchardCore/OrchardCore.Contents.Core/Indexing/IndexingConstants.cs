@@ -17,6 +17,7 @@ namespace OrchardCore.Contents.Indexing
         public const string DisplayTextAnalyzedKey = "Content.ContentItem.DisplayText.Analyzed";
         public const string DisplayTextNormalizedKey = "Content.ContentItem.DisplayText.Normalized";
         public const string FullTextKey = "Content.ContentItem.FullText";
+        public const string AttachmentFullTextKey = "Content.ContentItem.AttachmentFullTextKey";
         public const string ContainedPartKey = "Content.ContentItem.ContainedPart";
         public const string KeywordKey = ".keyword";
         public const string InheritedKey = ".Inherited";
