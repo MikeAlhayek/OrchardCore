@@ -19,7 +19,16 @@
     @if (User.Identity.IsAuthenticated)
     {
         <li class="nav-item dropdown">
-            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown"><i class="fa-solid fa-user fa-fw" aria-hidden="true"></i> @User.Identity.Name<b class="caret"></b></a>
+            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                @if (IsSectionDefined("UserMenuTitle"))
+                {
+                    @await RenderSectionAsync("UserMenuTitle", required: false)
+                }
+                else
+                {
+                    <i class="fa fa-user fa-fw" aria-hidden="true"></i> @User.Identity.Name
+                }
+            </a>
             <ul class="dropdown-menu dropdown-menu-end">
                 @if (User.HasClaim("Permission", "AccessAdminPanel"))
                 {
